@@ -1,12 +1,3 @@
-// 1977
-// 2097
-// 2601
-// 2669
-// 2685
-// 2709
-// 2780
-// 2788
-
 #include <DallasTemperature.h>
 #include <EEPROM.h>
 #include <Ethernet.h>
@@ -17,14 +8,6 @@
 #include <Time.h>
 
 extern EthernetUDP Udp;
-
-// "Zwangspaerchen"
-// OG WC + UG Treppe
-// OG Bad + UG Keller
-// OG Kind 3 + UG Bad / Dusche
-// OG Flur + UG Hobby
-// OG Kind 2 + OG Eltern
-
 
 // TODO / Fehler
 // - Unterstützung DHT Hygrometer / Temperatursensor
@@ -812,11 +795,9 @@ public:
     DEBUG{ Serial << F("TemperaturesUploader START") << endl; }
     bool success = ftpOpen();
     if ( success ){
-#if 1
       StringStream dir;
       dir << F("Heizung");
       ftpSetMode( dir.c_str(), FTP_MAKEDIR, true );
-#endif
       StringStream fname;
       //fname << year() << lz(month()) << lz(day()) << '/' << lz(hour()) << lz(minute()) << F(".txt");
       fname << F("Heizung/") << year() << lz(month()) << lz(day()) << F(".txt");
@@ -831,7 +812,6 @@ public:
           }
           ftpClient << endl;
         }
-        //TODO: Zeit wird zu Testzwecken falsch geschrieben!
         ftpClient << lz(day()) << '.' << lz(month()) << '.' << year() << ',' << lz(hour()) << ':' << lz(minute()) << ':' << lz(second());
         ftpClient << ',' << g_totalAmperage << ',' << g_requiredAmperage << ',' << FreeRam();
         for( unsigned short i = 0; i < SENSOR_COUNT; ++i ){
@@ -1306,12 +1286,6 @@ Sensor g_sensors[ SENSOR_COUNT ] = {
   { "S_DG",                0, { 0x28, 0x98, 0x76, 0xE0, 0x04, 0x00, 0x00, 0x28 } }, //
 };
 
-// elements = new Actor( pin, name, interval )
-// "pin" is the digital IO pin of the arduino board
-// "interval" is the interval used for PWM control of the connected relais. Typically this is 30 min (= 30*60*1000)
-// "switch_on_surge_amperage" is the amperage during the switch on period
-// "switch_on_surge_duration" is the max. duration in milliseconds of the switch on period
-// "working_amperage" is the amperage when the actor is on and the switch on surge time has elapsed
 Actor* g_actors[ ACTOR_COUNT + 1 ] = {
   //new Actor( 22, "a1", ACTOR_CYCLE_INTERVAL, 0.2f, 60000, 0.075f ),
   new Actor(),
