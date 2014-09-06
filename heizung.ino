@@ -1,13 +1,18 @@
 #include <DallasTemperature.h>
 #include <EEPROM.h>
 #include <Ethernet.h>
-#include <OneWire.h>
 #include <SD.h>
 #include <SPI.h>
 #include <Streaming.h>
 #include <Time.h>
+#include <OneWire.h>
 
-extern EthernetUDP Udp;
+#include "Defines.h"
+#include "Job.h"
+#include "Network.h"
+#include "Sensors.h"
+#include "TemperatureProfiles.h"
+#include "Tools.h"
 
 // TODO / Fehler
 // - Unterstützung DHT Hygrometer / Temperatursensor
@@ -22,432 +27,10 @@ extern EthernetUDP Udp;
 //   - strcmp -> strcmp_P
 //   - Datenstruktur Sensors überarbeiten (-> PROGMEM)
 
-//#define DEBUG if(true)
-#define DEBUG if(false)
-
-//#define DEBUG2 if(true)
-#define DEBUG2 if(false)
-
-// set this define to be able to force controllers to a specific level without working sensors.
-#define DEBUG_IGNORE_SENSORS
-
-#define BEGINMSG if(true){ Udp.beginPacket(0xffffffff,12888);Udp <<
-#define ENDMSG ; Udp.endPacket(); }
-
-// defines the number 1-wire busses
-#define BUS_COUNT 24
-
-// defines the number of sensors connected to 1-wire busses
-#define SENSOR_COUNT 25  
-
-// defines the number of actors (relais) connected
-#define ACTOR_COUNT 24
-
-// define the cycle time of each actor in seconds (=PWM frequence)
-#define ACTOR_CYCLE_INTERVAL 60ul*20
-//#define ACTOR_CYCLE_INTERVAL 5
-
-// define the number of temperature controllers (usually the number of rooms)
-#define CONTROLLER_COUNT 24
-
-// defines the time interval the controller updates its logic in milliseconds
-#define CONTROLLER_UPDATE_INTERVAL 5000ul
-
-// set this define if the relais are "on" using a low input level
-//#define INVERT_RELAIS_LEVEL
-
-// IMPORTANT:
-// The profiles base must be at least CONTROLLER_COUNT * 3 bytes higher than the temp base.
-// Set the reset define whenever the profile base changes, execute the program and send
-// a 'setProfiles 0' command to initialize the EEPROM correctly.
-
-//#define EEPROM_FORCE_PROFILE_RESET
-#define EEPROM_TEMP_BASE 0
-#define EEPROM_PROFILES_BASE 128
-
-#define lz(i) (i<10?"0":"") << i
-
-#define FTP_RECEIVE "RETR"
-#define FTP_STORE "STOR"
-#define FTP_APPEND "APPE"
-#define FTP_MAKEDIR "MKD"  
-
-#define ACTOR_SWITCH_ON_SURGE_AMPERAGE 0.2f
-#define ACTOR_SWITCH_ON_SURGE_DURATION 60000
-#define ACTOR_WORKING_AMPERAGE 0.075f
-#define ACTORS_MAX_AMPERAGE 5.f
-
-// SER: yellow wire
-// RCLK: black wire
-// SRCLK: red wire
-#define ACTORS_SER_PIN 5
-#define ACTORS_RCLK_PIN 6
-#define ACTORS_SRCLK_PIN 7
-
 float g_totalAmperage = 0.f; // current sum of all actors
 float g_requiredAmperage = 0.f;
 byte g_buffer[ 48 ];
 boolean g_actorStateChanged = true;
-
-class StringStream
-:public Stream
-{
-public:
-  StringStream()
-    :_position( 0 )
-  {}
-  StringStream( const String& s )
-    :_string( s )
-    ,_position( 0 )
-  {}
-  StringStream( const char* s )
-    :_string( s )
-    ,_position( 0 )
-  {}
-  virtual int available(){ return _string.length() - _position; }
-  virtual int read(){ return _position < _string.length() ? _string[ _position++ ] : -1; }
-  virtual int peek(){ return _position < _string.length() ? _string[ _position ] : -1; }
-  virtual void flush(){};
-  virtual size_t write( uint8_t c ){ _string += (char)c; }
-  const String& str() const{ return _string; }
-  const char* c_str() const{ return _string.c_str(); }
-private:
-  String _string;
-  int _position;
-};
-
-class EEPROMStream{
-public:
-  EEPROMStream()
-    :_position( 0 )
-  {}
-  void setCurrentBaseAddr( int baseAddr ){ _baseAddr = baseAddr; _position = 0; }
-  void setPosition( int pos ){ _position = pos; };
-  int getPosition() const{ return _position; };
-  int readInt(){ return read() * 256 + read(); }
-  void writeInt( int i ){ write( i >> 8 ); write( i & 0xff ); }
-  int at( int ofs ) const{ return EEPROM.read( _baseAddr + _position + ofs ); };
-  int read(){ return EEPROM.read( _baseAddr + _position++ ); }
-  int peek(){ return EEPROM.read( _baseAddr + _position ); }
-  void write( uint8_t c ){ EEPROM.write( _baseAddr + _position++, c ); }
-private:
-  int _baseAddr;
-  int _position;
-} g_eeprom;
-
-struct TemperatureProfiles{
-
-  static byte getNbProfiles(){
-    g_eeprom.setCurrentBaseAddr( EEPROM_PROFILES_BASE );
-    return g_eeprom.read();
-  }
-  
-  static void setCurrentProfile( byte id ){
-    g_eeprom.setCurrentBaseAddr( EEPROM_PROFILES_BASE );
-    g_eeprom.setPosition( 1 + (int)id * 2 );
-    g_eeprom.setPosition( g_eeprom.readInt() );
-    g_nbValues = g_eeprom.read();
-  }
-  
-  static byte getDays( int idx ){
-    return g_eeprom.at( idx * 3 + 0 ) / 10.f;
-  }
-    
-  static byte getStartTime( int idx ){
-    return g_eeprom.at( idx * 3 + 1 );
-  }
-    
-  static float getTemp( int idx ){
-    return g_eeprom.at( idx * 3 + 2 ) / 10.f;
-  }
-    
-  static float temp( byte day, byte hour, byte min ){
-    float temp = -1.f;
-    do{
-      byte dow = 1 << day;
-      byte now  = hour * 10 + min / 10;
-      byte next = 0;
-      for( int i = 0; i < g_nbValues; ++i ){
-        byte startTime = getStartTime( i );
-        if ( getDays( i ) & dow && startTime <= now && startTime >= next ){
-          next = startTime;
-          temp = getTemp( i );
-        }
-      }
-      hour = 23;
-      min = 59;
-      ++day;
-    } while ( temp == -1.f && day < 7 );
-    return temp;
-  }
-  
-  static void writeSettings( Stream& s ){
-#ifdef EEPROM_FORCE_PROFILE_RESET
-    return;
-#endif
-    DEBUG{ Serial << F( "Read settings from EEPROM" ) << endl; }
-    int nbProfiles = getNbProfiles();
-    s << nbProfiles;
-    for( int id = 0; id < nbProfiles; ++id ){
-      setCurrentProfile( id );
-      s << ' ' << g_nbValues;
-      for( int i = 0; i < g_nbValues; ++i ){
-        s << ' ' << g_eeprom.at( i * 3 + 0 ) << ' ' << g_eeprom.at( i * 3 + 1 ) << ' ' << g_eeprom.at( i * 3 + 2 );
-      }
-    }
-    s << endl;
-  }
-  
-  static void readSettings( Stream& s ){
-    DEBUG{ Serial << F( "Write settings to EEPROM" ) << endl; }
-    g_eeprom.setCurrentBaseAddr( EEPROM_PROFILES_BASE );
-    int nbProfiles = s.parseInt();
-    DEBUG{ Serial << F( "nbProfiles: " ) << nbProfiles << endl; }
-    g_eeprom.write( nbProfiles );
-    int profileAddr = 1 + nbProfiles * 2;
-    for( int id = 0; id < nbProfiles; ++id ){
-      g_eeprom.setPosition( 1 + (int)id * 2 );
-      g_eeprom.writeInt( profileAddr );
-      g_eeprom.setPosition( profileAddr );
-      int nbValues = s.parseInt();
-      g_eeprom.write( nbValues );
-      for( int i = 0; i < nbValues; ++i ){
-        g_eeprom.write( s.parseInt() ); // daysOfWeek
-        g_eeprom.write( s.parseInt() ); // startTime
-        g_eeprom.write( s.parseInt() ); // temp
-      }
-      profileAddr = g_eeprom.getPosition();
-    }
-  }
-  
-  static byte g_nbValues;
-};
-
-byte TemperatureProfiles::g_nbValues = 0;
-
-class Job;
-
-Job* g_headJob = 0;
-
-class Job{
-public:
-
-  static void setupJobs( Job** job ){
-    int amount = 0;
-    Job** j = job;
-    while ( *j ){
-      ++amount;
-      ++j;
-    }
-    int i = 0;
-    while ( *job ){
-      (*job)->setup( i, amount );
-      ++i;
-      ++job;
-    }
-  }
-
-  Job()
-  :_lastMillis( 0ul )
-  ,_delayMillis( 0ul )
-  ,_previousJob( 0 )
-  ,_nextJob( 0 )
-  {
-  }
-  
-  virtual ~Job(){
-    if ( _previousJob ){
-      _previousJob->_nextJob = _nextJob;
-    } else {  
-      g_headJob = _nextJob;
-    }
-    if ( _nextJob ){
-      _nextJob->_previousJob = _previousJob;
-    }
-  }
-  
-  virtual void setup( int i, int amount ){
-    _lastMillis = millis();
-    _nextJob = g_headJob;
-    g_headJob = this;
-  }
- 
-  unsigned long exec(){
-    update();
-    unsigned long elapsed = millis() - _lastMillis;
-    if ( elapsed >= _delayMillis ){
-      _lastMillis += _delayMillis;
-      _delayMillis = doJob();
-      elapsed = 0;
-    }
-    return _delayMillis - elapsed;
-  }
-  
-  void wait(){
-    unsigned long now = millis();
-    unsigned long delta = now - _lastMillis;
-    if ( delta < _delayMillis ){
-      delay( _delayMillis - delta );
-    }
-  }
-  
-  virtual void update(){}
-  virtual unsigned long doJob() =0;
-  
-  unsigned long _lastMillis;
-  unsigned long _delayMillis;
-  Job* _previousJob;
-  Job* _nextJob;
-};
-
-struct Sensor{
-  void setValid( bool valid ){ _temp = valid ? 0.f : 9999.f; }
-  bool valid() const{ return _temp != 9999.f; }
-  
-  void requestValue();
-  bool isAvailable();
-  bool update( bool waitForValue = false );
-  void sendT();
-
-  char* _name;
-  byte _bus;
-  union{
-    DeviceAddress _addr;
-    struct{
-      byte _zero;
-      unsigned long _lastRequest;
-    } _dhtData;
-  };
-  unsigned long _errorCount;
-  float _temp;
-};
-
-extern Sensor g_sensors[ SENSOR_COUNT ];
-extern OneWire g_busses[ BUS_COUNT ];
-extern DallasTemperature g_temperatures[ BUS_COUNT ];
-
-void Sensor::requestValue(){
-  g_temperatures[ _bus ].requestTemperaturesByAddress( _addr );
-}
-
-bool Sensor::isAvailable(){
-  return g_temperatures[ _bus ].isConversionAvailable( _addr );
-}
-
-bool Sensor::update( bool waitForValue ){
-  if ( !valid() ){
-    return false;
-  }
-  if ( waitForValue ){
-    g_temperatures[ _bus ].setWaitForConversion( true );
-    requestValue();
-    g_temperatures[ _bus ].setWaitForConversion( false );
-  }
-  float t = g_temperatures[ _bus ].getTempC( _addr );
-  if ( t == 85.f || t == -127.f ){
-    ++_errorCount;
-    return false;
-  }
-  _temp = t;
-  sendT();
-  return true;
-}
-
-void Sensor::sendT(){
-  Udp.beginPacket( 0xffffffff, 12888 );
-  Udp << "T " << _name << ' ' << _FLOAT( _temp, 1 );
-  Udp.endPacket();
-}
-
-unsigned short findSensor( const DeviceAddress& addr ){
-  for( int i = 0; i < SENSOR_COUNT; ++i ){
-    if ( !memcmp( addr, g_sensors[ i ]._addr, 8 ) ){
-      return i;
-    }
-  }
-  return SENSOR_COUNT;
-}
-
-const struct Sensor* findSensor( const char* name ){
-  for( int i = 0; i < SENSOR_COUNT; ++i ){
-    if ( !strcmp( name, g_sensors[ i ]._name ) ){
-      return &g_sensors[ i ];
-    }
-  }
-  return 0;
-}
-
-bool isSensorValid( DallasTemperature& temp, Sensor& sensor ){
-/*  uint8_t deviceCount = temp.getDeviceCount();
-  // iterate over all sensors of each bus
-  for( uint8_t i = 0; i < deviceCount; ++i ){
-    if ( temp.getAddress( sensor._addr, i ) ){
-      return true;
-    }
-  }*/
-  for( int bus = 0; bus < BUS_COUNT; ++bus ){
-    DallasTemperature& temp = g_temperatures[ bus ];
-    uint8_t deviceCount = temp.getDeviceCount();
-    for( uint8_t i = 0; i < deviceCount; ++i ){
-      DeviceAddress addr;
-      if ( !temp.getAddress( addr, i ) ){
-        continue;
-      }
-      if ( !memcmp( addr, sensor._addr, 8 ) ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-unsigned short detectSensors( Stream& out ){
-  //// SEARCH FOR NEW DEVICES
-  // iterate over all busses
-  for( int bus = 0; bus < BUS_COUNT; ++bus ){
-    if ( !g_busses[ bus ].reset() ){
-      out << F( "    Bus " ) << bus << F( " is not responding." ) << endl;
-    }
-    DallasTemperature& temp = g_temperatures[ bus ];
-    temp.begin();
-    uint8_t deviceCount = temp.getDeviceCount();
-    out << F( "    " ) << deviceCount << F( " devices on bus " ) << bus << endl;
-    // iterate over all sensors of each bus
-    for( uint8_t i = 0; i < deviceCount; ++i ){
-      DeviceAddress addr;
-      if ( !temp.getAddress( addr, i ) ){
-        continue;
-      }
-      unsigned short sid = findSensor( addr );
-      if ( sid == SENSOR_COUNT ){
-        out << F("    New device detected: ") << endl;
-        out << F("{ \"new_device\", { ");
-        for( uint8_t j = 0; j < 8; ++j ){
-          out << ( j > 0 ? F(", ") : F("") ) << F("0x") << ( addr[ j ] < 16 ? F("0") : F("") ) << _HEX( addr[ j ] );
-        }
-        out << F(" }, ") << bus << F(" }, // ") << SENSOR_COUNT << endl;
-      } else {
-        out << F("      Sensor '") << g_sensors[ sid ]._name << F("' detected.") << endl;
-      }
-    }
-  }
-  //// LOOK FOR LOST DEVICES
-  for( int i = 0; i < SENSOR_COUNT; ++i ){
-    Sensor& sensor = g_sensors[ i ];
-    sensor.setValid( true );
-    DallasTemperature& temp = g_temperatures[ sensor._bus ];
-    //Serial << sensor._name << "," << isSensorValid(temp,sensor) << "," << temp.validAddress(sensor._addr) << "," << temp.isConnected(sensor._addr) << "," << temp.getTempC(sensor._addr) << endl;
-    if ( !isSensorValid( temp, sensor ) || !temp.validAddress( sensor._addr ) || !temp.isConnected( sensor._addr ) || temp.getTempC( sensor._addr ) < -126.f ){
-      out << F("    ERROR: Device '") << sensor._name << F("' could not be found!") << endl;
-      //sensor._valid = false;
-      sensor.setValid( false );
-    } else {
-      sensor.update( true );
-      out << F("device '") << sensor._name << F("' found. (") << _FLOAT( sensor._temp, 1 ) << F(" C)") << endl;
-    }
-  }
-  return BUS_COUNT;
-}
 
 extern PROGMEM const char* g_actorNames[];
 
@@ -1187,14 +770,14 @@ void loop(){
 
   unsigned long start = millis();
   DEBUG{ Serial << F("exec jobs START") << endl; }
-  Job* job = g_headJob;
+  Job* job = Job::g_headJob;
   while ( job ){
     //minDelay = min( minDelay, job->exec() );
     unsigned long d = job->exec();
     if ( d < minDelay ){
       minDelay = d;
     }
-    job = job->_nextJob;
+    job = job->nextJob();
   }
   if ( g_actorStateChanged ){
     DEBUG{ Serial << F("Actors state: "); }
@@ -1253,10 +836,10 @@ DallasTemperature g_temperatures[ BUS_COUNT ] = {
   &g_busses[ 23 ]
 };
 
-// elements = name, address, bus of sensor
+// elements = name, bus, address of sensor
 // "name" is a unique human readable string to identify the temperature sensor
-// "address" is the DS18B20 internal address (use "detect" command to get this)
 // "bus" is the index of the bus in g_busses the sensor is connected to
+// "address" is the DS18B20 internal address (use "detect" command to get this)
 Sensor g_sensors[ SENSOR_COUNT ] = {
   { "S_UG_Waschen",        0, { 0x28, 0xE2, 0x12, 0xE2, 0x04, 0x00, 0x00, 0x76 } }, // 
   //{ "S_UG_Waschen",        0 }, // DHT temperature/humidity sensor (no address)
