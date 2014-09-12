@@ -65,8 +65,10 @@ private:
   int _position;
 };
 
-extern EEPROMStream g_eeprom;;
+extern char* strlower( char* s );
 
+extern EEPROMStream g_eeprom;;
+extern unsigned char g_buffer[ 48 ]; // must be at least 48 bytes for NTPClient
 
 #endif // Tools_h
 

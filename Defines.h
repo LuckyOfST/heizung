@@ -7,11 +7,40 @@
 //#define DEBUG2 if(true)
 #define DEBUG2 if(false)
 
+//////////////////////////////////////////////////////////////////////////////
+
+#define SUPPORT_FTP
+#define SUPPORT_Network
+#define SUPPORT_NTP
+#define SUPPORT_TemperatureUploader
+#define SUPPORT_UDP_messages
+#define SUPPORT_Webserver
+
+//////////////////////////////////////////////////////////////////////////////
+
+#ifndef SUPPORT_Network
+  #undef SUPPORT_FTP
+  #undef SUPPORT_NTP
+  #undef SUPPORT_UDP_messages
+  #undef SUPPORT_Webserver
+#endif // SUPPORT_Network
+
+#ifndef SUPPORT_FTP
+  #undef SUPPORT_TemperatureUploader
+#endif // SUPPORT_FTP
+
+//////////////////////////////////////////////////////////////////////////////
+
 // set this define to be able to force controllers to a specific level without working sensors.
 #define DEBUG_IGNORE_SENSORS
 
-#define BEGINMSG if(true){ Udp.beginPacket(0xffffffff,12888);Udp <<
-#define ENDMSG ; Udp.endPacket(); }
+#ifdef SUPPORT_UDP_messages
+  #define BEGINMSG if(true){ Udp.beginPacket(0xffffffff,12888);Udp <<
+  #define ENDMSG ; Udp.endPacket(); }
+#else
+  #define BEGINMSG if(false){ Serial <<
+  #define ENDMSG ; }
+#endif
 
 // defines the number 1-wire busses
 #define BUS_COUNT 24

@@ -28,14 +28,12 @@ struct Sensor{
   float _temp;
 };
 
-extern unsigned short findSensor( const DeviceAddress& addr );
-extern const struct Sensor* findSensor( const char* name );
-extern bool isSensorValid( DallasTemperature& temp, Sensor& sensor );
+extern void setupSensors();
+extern Sensor& getSensor( unsigned short id );
+extern const Sensor* findSensor( const char* name );
 extern unsigned short detectSensors( Stream& out );
-
-extern Sensor g_sensors[ SENSOR_COUNT ];
-extern OneWire g_busses[ BUS_COUNT ];
-extern DallasTemperature g_temperatures[ BUS_COUNT ];
+extern void requestTemp();
+extern void writeSensorsErrors( Stream& out );
 
 #endif // Sensors_h
 
