@@ -4,19 +4,15 @@
 class Job{
 public:
   static void setupJobs( Job** job );
-  static Job* g_headJob;
+  static unsigned long executeJobs( unsigned long minDelay );
 
   Job();
   virtual ~Job();
   
-  Job* nextJob() const{ return _nextJob; }
-  
   virtual void setup( int i, int amount );
-  unsigned long exec();
-  
-  void wait();
   
 protected:
+
   virtual void update();
   virtual unsigned long doJob() =0;
   
@@ -24,6 +20,12 @@ protected:
   unsigned long _delayMillis;
 
 private:
+  static Job* g_headJob;
+
+  Job* nextJob() const{ return _nextJob; }
+  unsigned long exec();
+  void wait();
+
   Job* _previousJob;
   Job* _nextJob;
 };

@@ -6,6 +6,19 @@
 #include "Defines.h"
 #include "Job.h"
 
+//////////////////////////////////////////////////////////////////////////////
+
+// define the number of temperature controllers (usually the number of rooms)
+#define CONTROLLER_COUNT 24
+
+// defines the time interval the controller updates its logic in milliseconds
+#define CONTROLLER_UPDATE_INTERVAL 5000ul
+
+// set this define to be able to force controllers to a specific level without working sensors.
+#define DEBUG_IGNORE_SENSORS
+
+//////////////////////////////////////////////////////////////////////////////
+
 class Controller;
 
 extern PROGMEM const char* g_controllerNames[];
@@ -55,6 +68,8 @@ protected:
   uint8_t _id;
   float _forcedLevel;
 };
+
+extern void setupController();
 
 #endif // Controller_h
 

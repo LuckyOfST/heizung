@@ -145,12 +145,13 @@ unsigned short detectSensors( Stream& out ){
   // iterate over all busses
   for( int bus = 0; bus < BUS_COUNT; ++bus ){
     if ( !g_busses[ bus ].reset() ){
-      out << F( "    Bus " ) << bus << F( " is not responding." ) << endl;
+      out << F( "  Bus " ) << bus << F( " is not responding." ) << endl;
+      continue;
     }
     DallasTemperature& temp = g_temperatures[ bus ];
     temp.begin();
     uint8_t deviceCount = temp.getDeviceCount();
-    out << F( "    " ) << deviceCount << F( " devices on bus " ) << bus << endl;
+    out << F( "  " ) << deviceCount << F( " devices on bus " ) << bus << endl;
     // iterate over all sensors of each bus
     for( uint8_t i = 0; i < deviceCount; ++i ){
       DeviceAddress addr;
@@ -159,14 +160,14 @@ unsigned short detectSensors( Stream& out ){
       }
       unsigned short sid = findSensor( addr );
       if ( sid == SENSOR_COUNT ){
-        out << F("    New device detected: ") << endl;
+        out << F("  New device detected: ") << endl;
         out << F("{ \"new_device\", { ");
         for( uint8_t j = 0; j < 8; ++j ){
           out << ( j > 0 ? F(", ") : F("") ) << F("0x") << ( addr[ j ] < 16 ? F("0") : F("") ) << _HEX( addr[ j ] );
         }
         out << F(" }, ") << bus << F(" }, // ") << SENSOR_COUNT << endl;
       } else {
-        out << F("      Sensor '") << g_sensors[ sid ]._name << F("' detected.") << endl;
+        out << F("    Sensor '") << g_sensors[ sid ]._name << F("' detected.") << endl;
       }
     }
   }
@@ -177,7 +178,7 @@ unsigned short detectSensors( Stream& out ){
     DallasTemperature& temp = g_temperatures[ sensor._bus ];
     //Serial << sensor._name << "," << isSensorValid(temp,sensor) << "," << temp.validAddress(sensor._addr) << "," << temp.isConnected(sensor._addr) << "," << temp.getTempC(sensor._addr) << endl;
     if ( !isSensorValid( temp, sensor ) || !temp.validAddress( sensor._addr ) || !temp.isConnected( sensor._addr ) || temp.getTempC( sensor._addr ) < -126.f ){
-      out << F("    ERROR: Device '") << sensor._name << F("' could not be found!") << endl;
+      out << F("  ERROR: Device '") << sensor._name << F("' could not be found!") << endl;
       //sensor._valid = false;
       sensor.setValid( false );
     } else {
@@ -189,12 +190,12 @@ unsigned short detectSensors( Stream& out ){
 }
 
 void setupSensors(){
-  Serial << F("  Initializing sensors.") << endl;
+  Serial << F("Initializing sensors.") << endl;
   for( int i = 0; i < BUS_COUNT; ++i ){
     g_temperatures[ i ].begin();
     g_temperatures[ i ].setWaitForConversion( false );
     if ( g_temperatures[ i ].isParasitePowerMode() ){
-      Serial << F("    WARNING: Bus ") << i << F(" is in parasite power mode.") << endl;
+      Serial << F("  WARNING: Bus ") << i << F(" is in parasite power mode.") << endl;
     }
   }
   detectSensors( Serial );
@@ -206,7 +207,7 @@ void setupSensors(){
     DallasTemperature& temp = g_temperatures[ sensor._bus ];
     temp.setResolution( sensor._addr, 12 );
     if ( temp.getResolution( sensor._addr ) != 12 ){
-      Serial << F("    WARNING: Sensor '") << sensor._name << F("' could not be set to 12 bit resolution.") << endl;
+      Serial << F("  WARNING: Sensor '") << sensor._name << F("' could not be set to 12 bit resolution.") << endl;
     }
   }
 }

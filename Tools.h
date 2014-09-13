@@ -4,6 +4,8 @@
 #include <EEPROM.h>
 #include <Streaming.h>
 
+////////////////////////////////////////////////////////////////////////////////////////////
+
 // IMPORTANT:
 // The profiles base must be at least CONTROLLER_COUNT * 3 bytes higher than the temp base.
 // Set the reset define whenever the profile base changes, execute the program and send
@@ -12,6 +14,10 @@
 //#define EEPROM_FORCE_PROFILE_RESET
 #define EEPROM_TEMP_BASE 0
 #define EEPROM_PROFILES_BASE 128
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+#define lz(i) (i<10?"0":"") << i
 
 /////////////////////////////////////////////////////////////////////////////// StringStream
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,6 +72,7 @@ private:
 };
 
 extern char* strlower( char* s );
+extern void writeTime( Stream& out );
 
 extern EEPROMStream g_eeprom;;
 extern unsigned char g_buffer[ 48 ]; // must be at least 48 bytes for NTPClient

@@ -4,6 +4,8 @@
 
 #ifdef SUPPORT_Network
 
+//#define USE_DHCP
+
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
 static byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
@@ -13,7 +15,7 @@ static IPAddress subnet( 255, 255, 255, 0 );
 
 #ifdef SUPPORT_FTP
   IPAddress ftpServer( 192, 168, 178, 1 );
-#endif
+#endif // SUPPORT_FTP
 
 #ifdef SUPPORT_NTP
   IPAddress timeServer( 192, 168, 178, 1 ); // fritz.box
@@ -28,16 +30,25 @@ EthernetUDP Udp;
 EthernetClient client;
 
 void setupNetwork(){
-  Serial << F("  Initializing Ethernet controller.") << endl;
+  Serial << F("Initializing ethernet controller.") << endl;
   pinMode( 10, OUTPUT );
   digitalWrite( 10, LOW );
+#ifdef USE_DHCP
+  if ( Ethernet.begin( mac ) ){
+    Serial << F("  Receiving IP using DHCP.") << endl;
+  } else {
+    Serial << F("  Failed receiving IP using DHCP.") << endl;
+    Ethernet.begin( mac, ip, gateway, subnet );
+  }
+#else
   Ethernet.begin( mac, ip, gateway, subnet );
+#endif // USE_DHCP
+  Serial << F("  IP: ") << Ethernet.localIP() << endl;
 #ifdef SUPPORT_NTP
   setupNTP();
 #endif // SUPPORT_NTP
 #ifdef SUPPORT_Webserver
   setupWebserver();
-  Serial << "    Server is at " << Ethernet.localIP() << ":80" << endl;
 #endif // SUPPORT_Webserver
 }
 

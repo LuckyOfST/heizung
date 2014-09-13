@@ -6,6 +6,16 @@
 
 #include "Defines.h"
 
+//////////////////////////////////////////////////////////////////////////////
+
+// defines the number 1-wire busses
+#define BUS_COUNT 24
+
+// defines the number of sensors connected to 1-wire busses
+#define SENSOR_COUNT 25  
+
+//////////////////////////////////////////////////////////////////////////////
+
 struct Sensor{
   void setValid( bool valid ){ _temp = valid ? 0.f : 9999.f; }
   bool valid() const{ return _temp != 9999.f; }

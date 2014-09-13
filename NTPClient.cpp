@@ -86,11 +86,31 @@ time_t getNtpTime(){
   return 0; // return 0 if unable to get the time
 }
 
+bool updateNTP(){
+  if ( timeStatus() == timeNotSet || timeStatus() == timeNeedsSync ){
+    DEBUG{ Serial << F("getNtpTime START") << endl; }
+    time_t t = getNtpTime();
+    DEBUG{ Serial << F("getNtpTime END") << endl; }
+    if ( t != 0 ){
+      setTime( t );
+      return true;
+    }
+    return false;
+  }
+  return true;
+}
+
 void setupNTP(){
-  Serial << F("  Initializing time using NTP.") << endl;
+  Serial << F("Initializing time using NTP.") << endl;
   Udp.begin( localNtpPort );
   setSyncProvider( getNtpTime );
   setSyncInterval( 60 * 60 * 24 );
+  if ( !updateNTP() ){
+    Serial << F("  Failed to get time using NTP.") << endl;
+  } else {
+    Serial << F("  ");
+    writeTime( Serial );
+  }
 }
 
 #endif // SUPPORT_NTP

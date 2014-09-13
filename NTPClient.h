@@ -6,6 +6,7 @@
 #ifdef SUPPORT_NTP
 
 extern void setupNTP();
+extern bool updateNTP();
 
 #endif // SUPPORT_NTP
 #endif // NTPClient_h

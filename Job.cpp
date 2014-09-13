@@ -1,5 +1,7 @@
 #include <arduino.h>
+#include <Streaming.h>
 
+#include "Defines.h"
 #include "Job.h"
 
 Job* Job::g_headJob = 0;
@@ -19,6 +21,21 @@ void Job::setupJobs( Job** job ){
   }
 }
 
+unsigned long Job::executeJobs( unsigned long minDelay ){
+  unsigned long start = millis();
+  DEBUG{ Serial << F("exec jobs START") << endl; }
+  Job* job = g_headJob;
+  while ( job ){
+    //minDelay = min( minDelay, job->exec() );
+    unsigned long d = job->exec();
+    if ( d < minDelay ){
+      minDelay = d;
+    }
+    job = job->nextJob();
+  }
+  DEBUG{ Serial << F("exec jobs END (") << ( millis() - start ) << F(" ms)") << endl; }
+  return minDelay;
+}
 
 Job::Job()
 :_lastMillis( 0ul )

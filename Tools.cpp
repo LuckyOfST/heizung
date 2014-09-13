@@ -1,3 +1,6 @@
+#include <Time.h>
+
+#include "Defines.h"
 #include "Tools.h"
 
 EEPROMStream g_eeprom;
@@ -10,4 +13,9 @@ char* strlower( char* s ){
   }
   return s;
 }
+
+void writeTime( Stream& out ){
+  out << F("Current time is ")  << lz(day()) << '.' << lz(month()) << '.' << year() << ' ' << lz(hour()) << ':' << lz(minute()) << ':' << lz(second()) << endl;
+}
+
 

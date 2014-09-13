@@ -16,7 +16,7 @@ extern void interpret( Stream& stream, Stream& out );
 static EthernetServer server( 80 );
 
 void setupSDCard(){
-  Serial << F("  Initializing SD card reader.") << endl;
+  Serial << F("Initializing SD card reader.") << endl;
   pinMode( 4, OUTPUT );
   digitalWrite( 4, LOW );
   if ( !SD.begin( 4 ) ){
@@ -26,6 +26,8 @@ void setupSDCard(){
 
 void setupWebserver(){
   setupSDCard();
+  Serial << F("Initializing webserver.") << endl;
+  Serial << F("  Server is at ") << Ethernet.localIP() << ":80" << endl;
 }
 
 const char* readLine( Stream& stream ){
@@ -39,15 +41,6 @@ const char* readLine( Stream& stream ){
 #define BUFSIZ 100
 
 void execWebserver(){
-  if ( timeStatus() == timeNotSet || timeStatus() == timeNeedsSync ){
-    DEBUG{ Serial << F("getNtpTime START") << endl; }
-    time_t t = 0;//getNtpTime();
-    DEBUG{ Serial << F("getNtpTime END") << endl; }
-    if ( t != 0 ){
-      setTime( t );
-    }
-  }
-  
   // listen to ethernet for requests
   client = server.available();
   if ( client ){

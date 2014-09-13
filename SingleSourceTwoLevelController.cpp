@@ -4,6 +4,7 @@
 #include "Actor.h"
 #include "Sensors.h"
 #include "SingleSourceTwoLevelController.h"
+#include "Tools.h"
 
 SingleSourceTwoLevelController::SingleSourceTwoLevelController( uint8_t id, unsigned short sensor, unsigned short actor )
 :Controller( id )
