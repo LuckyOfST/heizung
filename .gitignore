@@ -1,0 +1,13 @@
+*.opensdf
+*.sdf
+*.sln
+*.suo
+*.vcxproj
+*.filters
+*.user
+Visual Micro/.heizung.vsarduino.h
+ipch/heizung-1904ca3b/heizung-3355fbc0.ipch
+Visual Micro/Compile.vmps.xml
+Visual Micro/Configuration.Debug.vmps.xml
+Visual Micro/Configuration.Release.vmps.xml
+Visual Micro/Upload.vmps.xml
