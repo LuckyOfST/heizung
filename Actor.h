@@ -24,7 +24,8 @@
 #define ACTORS_MAX_AMPERAGE 5.f
 
 //#define ACTORS_COMMTYPE_DIRECT
-#define ACTORS_COMMTYPE_SERIAL_V1
+//#define ACTORS_COMMTYPE_SERIAL_V1
+#define ACTORS_COMMTYPE_CRYSTAL64IO
 
 #ifdef ACTORS_COMMTYPE_SERIAL_V1
   // SER: yellow wire
@@ -53,9 +54,9 @@ public:
   static float getCurrentRequiredAmperage();
   static void applyActorsStates();
   
-#ifdef ACTORS_COMMTYPE_DIRECT
+#if defined( ACTORS_COMMTYPE_DIRECT )
   Actor( unsigned char pin );
-#elif defined(ACTORS_COMMTYPE_SERIAL_V1)
+#elif defined(ACTORS_COMMTYPE_SERIAL_V1) || defined( ACTORS_COMMTYPE_CRYSTAL64IO )
   Actor();
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
@@ -81,7 +82,7 @@ public:
   float _currentAmperage;
   unsigned long _switchOnTime;
   bool _waitingForPower;
-#ifdef ACTORS_COMMTYPE_DIRECT
+#if defined( ACTORS_COMMTYPE_DIRECT )
   unsigned char _pin;
 #endif
   

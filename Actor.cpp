@@ -86,9 +86,9 @@ PGM_P g_actorNames[ ACTOR_COUNT ] PROGMEM = {
 static float g_totalAmperage = 0.f; // current sum of all actors
 static float g_requiredAmperage = 0.f; 
 
-#ifdef ACTORS_COMMTYPE_SERIAL_V1
+#if defined(ACTORS_COMMTYPE_SERIAL_V1) || defined( ACTORS_COMMTYPE_CRYSTAL64IO )
 static bool g_actorStateChanged = true;
-#endif // ACTORS_COMMTYPE_V1
+#endif // ACTORS_COMMTYPE_SERIAL_V1 || ACTORS_COMMTYPE_CRYSTAL64IO
 
 float Actor::getCurrentUsedAmperage(){
   return g_totalAmperage;
@@ -99,7 +99,7 @@ float Actor::getCurrentRequiredAmperage(){
 }
 
 void Actor::applyActorsStates(){
-#ifdef ACTORS_COMMTYPE_V1
+#if defined(ACTORS_COMMTYPE_SERIAL_V1)
   if ( g_actorStateChanged ){
     g_actorStateChanged = false;
     DEBUG{ Serial << F("Actors state: "); }
@@ -117,12 +117,18 @@ void Actor::applyActorsStates(){
     DEBUG{ Serial << endl; }
     digitalWrite( ACTORS_RCLK_PIN, HIGH );
   }
-#endif // ACTORS_COMMTYPE_V1
+#elif defined( ACTORS_COMMTYPE_CRYSTAL64IO )
+  if ( g_actorStateChanged ){
+    g_actorStateChanged = false;
+    // TODO
+
+  }
+#endif // ACTORS_COMMTYPE_SERIAL_V1 || ACTORS_COMMTYPE_CRYSTAL64IO
 }
 
 #ifdef ACTORS_COMMTYPE_DIRECT
 Actor::Actor( unsigned char pin )
-#elif defined(ACTORS_COMMTYPE_SERIAL_V1)
+#elif defined(ACTORS_COMMTYPE_SERIAL_V1) || defined( ACTORS_COMMTYPE_CRYSTAL64IO )
 Actor::Actor()
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
@@ -135,7 +141,7 @@ Actor::Actor()
 ,_waitingForPower( false )
 #ifdef ACTORS_COMMTYPE_DIRECT
 ,_pin( pin )
-#endif // ACTORS_COMMTYPE_SERIAL_V1
+#endif // ACTORS_COMMTYPE_DIRECT
 {
 }
 
@@ -234,7 +240,7 @@ void Actor::applyActorState( bool on ){
 #else
   digitalWrite( _pin, on ? HIGH : LOW );
 #endif // INVERT_RELAIS_LEVEL
-#elif defined(ACTORS_COMMTYPE_SERIAL_V1)
+#elif defined(ACTORS_COMMTYPE_SERIAL_V1) || defined( ACTORS_COMMTYPE_CRYSTAL64IO )
   g_actorStateChanged |= on ^ _state;
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
@@ -259,6 +265,8 @@ void setupActors(){
   pinMode( ACTORS_SER_PIN, OUTPUT );
   pinMode( ACTORS_RCLK_PIN, OUTPUT );
   pinMode( ACTORS_SRCLK_PIN, OUTPUT );
+#elif defined( ACTORS_COMMTYPE_CRYSTAL64IO )
+  // nothing to do...
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
 #endif // ACTORS_COMMTYPE_DIRECT

@@ -9,8 +9,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-#define SUPPORT_FTP
 #define SUPPORT_Network
+#define SUPPORT_FTP
 #define SUPPORT_NTP
 #define SUPPORT_TemperatureUploader
 #define SUPPORT_UDP_messages

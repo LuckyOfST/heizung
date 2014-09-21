@@ -46,7 +46,7 @@ void execWebserver(){
   if ( client ){
     static int requestCounter = 0;
     ++requestCounter;
-    DEBUG{ Serial << requestCounter << ". ethernet request detected." << endl; }
+    DEBUG{ Serial << requestCounter << F(". ethernet request detected.") << endl; }
  
     char clientline[BUFSIZ];
     int index = 0;
@@ -93,8 +93,8 @@ void execWebserver(){
             ++filename;
             if ( !strncmp( filename, "cmd=", 4 ) ){
               filename += 4;
-              client << "HTTP/1.1 200 OK" << endl;
-              client << "Content-Type: text/plain" << endl << endl;
+              client << F("HTTP/1.1 200 OK") << endl;
+              client << F("Content-Type: text/plain") << endl << endl;
               String s( filename );
               s.replace( "%20", " " );
               StringStream ss( s );
@@ -105,24 +105,24 @@ void execWebserver(){
           
           File file = SD.open( filename, FILE_READ );
           if ( !file ){
-            client << "HTTP/1.1 404 Not Found" << endl;
-            client << "Content-Type: text/html" << endl;
+            client << F("HTTP/1.1 404 Not Found") << endl;
+            client << F("Content-Type: text/html") << endl;
             client << endl;
-            client << "<h2>File Not Found!</h2>" << endl;
+            client << F("<h2>File Not Found!</h2>") << endl;
             break;
           }
           
           strlower( filename );          
-          client << "HTTP/1.1 200 OK" << endl;
+          client << F("HTTP/1.1 200 OK") << endl << F("Content-Type: ");
           if ( strstr( filename, ".htm" ) != 0 ){
-            client << "Content-Type: text/html" << endl;
+            client << F("text/html") << endl;
           } else if ( strstr( filename, ".jpg" ) != 0 ){
-            client << "Content-Type: image/jpg" << endl;
+            client << F("image/jpg") << endl;
           } else if ( strstr( filename, ".js" ) != 0 ){
-            client << "Content-Type: text/html" << endl;
-            client << "Expires: Thu, 15 Apr 2100 20:00:00 GMT" << endl;
+            client << F("text/html") << endl;
+            client << F("Expires: Thu, 15 Apr 2100 20:00:00 GMT") << endl;
           } else {
-            client << "Content-Type: text/plain" << endl;
+            client << F("text/plain") << endl;
           }
           client << endl;
           
@@ -142,7 +142,7 @@ void execWebserver(){
                 {
                   file.read();
                   const char* id = readLine( file );
-                  client << "not supported" << endl;
+                  client << F("not supported") << endl;
                 } break;
               case (char)'T':
                 {
@@ -183,10 +183,10 @@ void execWebserver(){
           file.close();
         } else {
           // everything else is a 404
-          client << "HTTP/1.1 404 Not Found" << endl;
-          client << "Content-Type: text/html" << endl;
+          client << F("HTTP/1.1 404 Not Found") << endl;
+          client << F("Content-Type: text/html") << endl;
           client << endl;
-          client << "<h2>File Not Found!</h2>" << endl;
+          client << F("<h2>File Not Found!</h2>") << endl;
         }
         break;
       }

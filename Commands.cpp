@@ -252,7 +252,6 @@ PROGMEM prog_uchar commandDescs[] = {
   "setProfiles\0 XXX\0" "Sets the profiles (see documentation for format details).\0"
   "getTemp\0 PID DOW H M\0" "Gets the temperature set in profile PID for Day-Of-Week (0-6) DOW, Time H:M.\0"
   "forceActor\0 AID X\0" "forces the actor AID (or 'all') to bo on (X=1) or off (X=0) or to work in standard mode (X=-1).\0"
-  //"forceController\0 CID X\0" "forces the controller CID to set the actors' level to X [0..1]. Set X to -1 to work in standard operating mode.\0"
   "setTime\0 DD MM YY H M S\0" "Sets the time to day (DD), month (MM), year (YY); hour (H) minute (M) second (S).\0"
   "getTime\0\0" "Shows the current time.\0"
   "requestTemp\0\0" "Updates all sensors and sends their values via UDP (port 12888).\0"
