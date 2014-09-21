@@ -11,3 +11,8 @@ Visual Micro/Compile.vmps.xml
 Visual Micro/Configuration.Debug.vmps.xml
 Visual Micro/Configuration.Release.vmps.xml
 Visual Micro/Upload.vmps.xml
+Release/cl.command.1.tlog
+*.tlog
+*.pdb
+Release/heizung.vcxprojResolveAssemblyReference.cache
+Release/heizung.log

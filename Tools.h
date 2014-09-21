@@ -44,6 +44,7 @@ public:
   virtual size_t write( uint8_t c ){ _string += (char)c; }
   const String& str() const{ return _string; }
   const char* c_str() const{ return _string.c_str(); }
+  void clear(){ _string = ""; }
 private:
   String _string;
   int _position;
@@ -73,9 +74,14 @@ private:
 
 extern char* strlower( char* s );
 extern void writeTime( Stream& out );
+extern const char* readText( Stream& s );
+extern void read( Stream& s, char* buffer, unsigned short bufferSize );
 
 extern EEPROMStream g_eeprom;;
-extern unsigned char g_buffer[ 48 ]; // must be at least 48 bytes for NTPClient
+
+// BUFFER_LENGTH must be at least 48 bytes for NTPClient
+#define BUFFER_LENGTH 48
+extern unsigned char g_buffer[ BUFFER_LENGTH + 1 ];
 
 #endif // Tools_h
 

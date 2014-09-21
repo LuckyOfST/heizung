@@ -5,7 +5,7 @@
 
 EEPROMStream g_eeprom;
 
-unsigned char g_buffer[ 48 ];
+unsigned char g_buffer[ BUFFER_LENGTH + 1 ];
 
 char* strlower( char* s ){
   for( char* p = s; *p; ++p ){
@@ -18,4 +18,32 @@ void writeTime( Stream& out ){
   out << F("Current time is ")  << lz(day()) << '.' << lz(month()) << '.' << year() << ' ' << lz(hour()) << ':' << lz(minute()) << ':' << lz(second()) << endl;
 }
 
+const char* readText( Stream& s ){
+  static char text[ 256 ];
+  byte length = s.readBytesUntil( ' ', text, sizeof( text ) / sizeof( char ) );
+  text[ length ] = 0;
+  return text;
+}
+
+void read( Stream& s, char* buffer, unsigned short bufferSize ){
+  unsigned short i = 0;
+  while ( s.available() && i < bufferSize - 1 ){
+    char c = s.read();
+    if ( c == 10 || c == 13 || c == 32 ){
+      if ( i == 0 ){
+        continue;
+      }
+      break;
+    }
+    buffer[ i ] = c;
+    ++i;
+  }
+  buffer[ i ] = 0;
+  while ( s.available() ){
+    char c = s.peek();
+    if ( c != 10 || c != 13 || c != 32 ){
+      break;
+    }
+  }
+}
 
