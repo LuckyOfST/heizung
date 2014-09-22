@@ -32,7 +32,7 @@ namespace TemperatureProfiles{
     float temp = -1.f;
     do{
       byte dow = 1 << day;
-      byte now  = hour * 10 + min / 10;
+      byte now  = hour * 10 + min / 15;
       byte next = 0;
       for( int i = 0; i < g_nbValues; ++i ){
         byte startTime = getStartTime( i );
