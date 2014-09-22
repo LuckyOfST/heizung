@@ -3,6 +3,10 @@
 
 #include "Actor.h"
 
+#ifdef ACTORS_COMMTYPE_CRYSTAL64IO
+#include <IOshield.h>
+#endif // ACTORS_COMMTYPE_CRYSTAL64IO
+
 Actor* g_actors[ ACTOR_COUNT + 1 ] = {
   new Actor(),
   new Actor(),
@@ -90,6 +94,11 @@ static float g_requiredAmperage = 0.f;
 static bool g_actorStateChanged = true;
 #endif // ACTORS_COMMTYPE_SERIAL_V1 || ACTORS_COMMTYPE_CRYSTAL64IO
 
+#ifdef ACTORS_COMMTYPE_CRYSTAL64IO
+IOshield IO;
+#define CRYSTAL64IO_BASE_PORT 0
+#endif // ACTORS_COMMTYPE_CRYSTAL64IO
+
 float Actor::getCurrentUsedAmperage(){
   return g_totalAmperage;
 }
@@ -120,8 +129,32 @@ void Actor::applyActorsStates(){
 #elif defined( ACTORS_COMMTYPE_CRYSTAL64IO )
   if ( g_actorStateChanged ){
     g_actorStateChanged = false;
-    // TODO
-
+    DEBUG{ Serial << F("Actors state: "); }
+    uint8_t port = CRYSTAL64IO_BASE_PORT;
+    uint16_t state = 0;
+    for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
+      DEBUG{ Serial << ( g_actors[ i ]->isOpen() ? F("1") : F("0") ); }
+      state >>= 1;
+      if ( g_actors[ i ]->isOpen() ){
+        state |= 0x8000;
+      }
+      if ( !( i & 0xf ) ){
+        IO.portWrite( port, state );
+        state = 0;
+        ++port;
+      }
+    }
+    if ( ACTOR_COUNT & 0xf ){
+      // write to the lower bits
+      state >>= 16 - ( ACTOR_COUNT & 0xf );
+      // preserve the value of the pins not used by the actors
+      uint16_t value = IO.portRead( port );
+      value &= 0xffff << ( ACTOR_COUNT & 0xf );
+      state |= value;
+      // write the port
+      IO.portWrite( port, state );
+    }
+    DEBUG{ Serial << endl; }
   }
 #endif // ACTORS_COMMTYPE_SERIAL_V1 || ACTORS_COMMTYPE_CRYSTAL64IO
 }
@@ -267,6 +300,10 @@ void setupActors(){
   pinMode( ACTORS_SRCLK_PIN, OUTPUT );
 #elif defined( ACTORS_COMMTYPE_CRYSTAL64IO )
   // nothing to do...
+  IO.initialize();
+  for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
+    IO.pinMode( i, OUTPUT );
+  }
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
 #endif // ACTORS_COMMTYPE_DIRECT

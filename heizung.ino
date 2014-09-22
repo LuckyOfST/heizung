@@ -6,6 +6,7 @@
 #include <Streaming.h>
 #include <Time.h>
 #include <OneWire.h>
+#include <Wire.h>
 
 #include "Actor.h"
 #include "Commands.h"
@@ -20,6 +21,10 @@
 #include "TemperatureUploader.h"
 #include "Tools.h"
 #include "Webserver.h"
+
+#ifdef ACTORS_COMMTYPE_CRYSTAL64IO
+#include <IOshield.h>
+#endif // ACTORS_COMMTYPE_CRYSTAL64IO
 
 // TODO / Fehler
 // - Minimale Bodentemperatur / Fusswarmer Boden: Minimales Level im Actor einbauen. Diesen im EEPROM ablegen.
