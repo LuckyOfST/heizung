@@ -15,7 +15,7 @@
 #define CONTROLLER_UPDATE_INTERVAL 5000ul
 
 // set this define to be able to force controllers to a specific level without working sensors.
-#define DEBUG_IGNORE_SENSORS
+//#define DEBUG_IGNORE_SENSORS
 
 //////////////////////////////////////////////////////////////////////////////
 

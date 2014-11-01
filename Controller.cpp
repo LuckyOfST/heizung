@@ -27,17 +27,17 @@ Controller* g_controller[ CONTROLLER_COUNT + 1 ] = {
   new SingleSourceTwoLevelController( 10, 10, 10 ),
   new SingleSourceTwoLevelController( 11, 11, 11 ),
   new SingleSourceTwoLevelController( 12, 12, 12 ),
-  new SingleSourceTwoLevelController( 13, 13, 13 ),
-  new SingleSourceTwoLevelController( 14, 14, 14 ),
-  new SingleSourceTwoLevelController( 15, 15, 15 ),
-  new SingleSourceTwoLevelController( 16, 16, 16 ),
-  new SingleSourceTwoLevelController( 17, 17, 17 ),
-  new SingleSourceTwoLevelController( 18, 18, 18 ),
-  new SingleSourceTwoLevelController( 19, 19, 19 ),
-  new SingleSourceTwoLevelController( 20, 20, 20 ),
-  new SingleSourceTwoLevelController( 21, 21, 21 ),
-  new SingleSourceTwoLevelController( 22, 22, 22 ),
-  new SingleSourceTwoLevelController( 23, 23, 23 ),
+  new SingleSourceTwoLevelController( 13, 13, 13 ), // EG_Wohnen / 2 sensors (13+14)!
+  new SingleSourceTwoLevelController( 14, 15, 14 ),
+  new SingleSourceTwoLevelController( 15, 16, 15 ),
+  new SingleSourceTwoLevelController( 16, 17, 16 ),
+  new SingleSourceTwoLevelController( 17, 18, 17 ),
+  new SingleSourceTwoLevelController( 18, 19, 18 ),
+  new SingleSourceTwoLevelController( 19, 20, 19 ),
+  new SingleSourceTwoLevelController( 20, 21, 20 ),
+  new SingleSourceTwoLevelController( 21, 22, 21 ),
+  new SingleSourceTwoLevelController( 22, 23, 22 ),
+  new SingleSourceTwoLevelController( 23, 24, 23 ),
   0 // define 0 as last entry!
 };
 

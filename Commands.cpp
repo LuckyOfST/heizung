@@ -48,7 +48,8 @@ void cmdStatus( Stream& in, Stream& out ){
       out << F("    '") << s._name << F("' invalid.") << endl;
       continue;
     }
-    s.update( true );
+    // requesting an update leads to a long time until the result is presented...
+    //s.update( true );
     out << F("    '") << s._name << F("': ") << _FLOAT( s._temp, 1 ) << F(" C (") << s._errorCount << F(" errors)") << endl;
   }
   out << F("  CONTROLLERS:") << endl;

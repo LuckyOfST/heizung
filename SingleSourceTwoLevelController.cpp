@@ -21,26 +21,27 @@ bool SingleSourceTwoLevelController::working() const{
 
 unsigned long SingleSourceTwoLevelController::doJob(){
 #ifndef DEBUG_IGNORE_SENSORS
-  if ( !g_sensors[ _sensor ].valid() ){
+  Sensor& sensor = getSensor( _sensor );
+  if ( !sensor.valid() ){
     //Serial << _name << F(": skipped due missing sensor '") << g_sensors[ _sensor ]._name << F("'.") << endl;
     return CONTROLLER_UPDATE_INTERVAL;
   }
   if ( _sensorMode == Idle ){
-    g_sensors[ _sensor ].requestValue();
+    sensor.requestValue();
     _sensorMode = WaitingForValue;
   }
   if ( _sensorMode == WaitingForValue ){
-    if ( !g_sensors[ _sensor ].isAvailable() ){
+    if ( !sensor.isAvailable() ){
       return 100;
     }
     _sensorMode = Idle;
   }
-  if ( !g_sensors[ _sensor ].update() ){
+  if ( !sensor.update() ){
     Serial << getName() << F(": error in temperature update!") << endl;
     return CONTROLLER_UPDATE_INTERVAL;
   }
 
-  float t = g_sensors[ _sensor ]._temp;
+  float t = sensor._temp;
 #else
   float t = 21.f;
 #endif
