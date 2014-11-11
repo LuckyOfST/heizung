@@ -16,12 +16,17 @@
 //#define ACTOR_CYCLE_INTERVAL 5
 
 // set this define if the relais are "on" using a low input level
-//#define INVERT_RELAIS_LEVEL
+#define INVERT_RELAIS_LEVEL
 
 #define ACTOR_SWITCH_ON_SURGE_AMPERAGE 0.2f
 #define ACTOR_SWITCH_ON_SURGE_DURATION 60000
 #define ACTOR_WORKING_AMPERAGE 0.075f
 #define ACTORS_MAX_AMPERAGE 5.f
+
+////// The ACTORS_COMMTYPE defines the interface type to the actors.
+// "DIRECT": Each actor is assigned to a digital I/O pin of the board
+// "SERIAL_V1": The actors are connected to a shield with shift registers
+// "CRYSTAL64IO": The actors are connected to a shiled like the Crystal 64 IO or Centipede based on MCP23017 chips using the I2C interface
 
 //#define ACTORS_COMMTYPE_DIRECT
 //#define ACTORS_COMMTYPE_SERIAL_V1
@@ -94,6 +99,7 @@ private:
 };
 
 extern void setupActors();
+extern void testActors();
 
 #endif // Actor.h
 

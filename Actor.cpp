@@ -134,33 +134,38 @@ void Actor::applyActorsStates(){
     uint8_t port = CRYSTAL64IO_BASE_PORT;
 #if 0
     for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
+#ifdef INVERT_RELAIS_LEVEL
+      IO.digitalWrite( i, g_actors[ i ]->isOpen() ? 0 : 1 );
+#else
       IO.digitalWrite( i, g_actors[ i ]->isOpen() ? 1 : 0 );
+#endif
     }
 #else
     uint16_t state = 0;
     for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
       DEBUG{ Serial << ( g_actors[ i ]->isOpen() ? F("1") : F("0") ); }
       if ( i > 0 && !( i & 0xf ) ){
-Serial << F("Port ") << port << F(" set to ") << state << endl;
         IO.portWrite( port, state );
         state = 0;
         ++port;
       }
       state >>= 1;
+#ifdef INVERT_RELAIS_LEVEL
+      if ( !g_actors[ i ]->isOpen() ){
+#else
       if ( g_actors[ i ]->isOpen() ){
+#endif
         state |= 0x8000;
       }
     }
     if ( ACTOR_COUNT & 0xf ){
       // write to the lower bits
-Serial << F("Current value ") << state << endl;
       state >>= 16 - ( ACTOR_COUNT & 0xf );
       // preserve the value of the pins not used by the actors
       uint16_t value = IO.portRead( port );
       value &= 0xffff << ( ACTOR_COUNT & 0xf );
       state |= value;
       // write the port
-Serial << F("Port ") << port << F(" set to ") << state << endl;
       IO.portWrite( port, state );
     }
     DEBUG{ Serial << endl; }
@@ -298,6 +303,54 @@ Actor* Actor::findActor( const char* name ){
     }
   }
   return 0;
+}
+
+void testActors(){
+  // all off
+  for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
+    g_actors[ i ]->setMode( Actor::ForceOff );
+  }
+  g_actorStateChanged = true;
+  Actor::applyActorsStates();
+
+  // single actors test...
+  for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
+    if ( i > 0 ){
+      g_actors[ i - 1 ]->setMode( Actor::ForceOff );
+      g_actors[ i - 1 ]->doJob();
+    }
+    g_actors[ i ]->setMode( Actor::ForceOn );
+    g_actors[ i ]->doJob();
+    Actor::applyActorsStates();
+    delay( 250 );
+  }
+  
+  // blink all actors (alternating neighbors)
+  for( uint8_t j = 0; j < 8; ++j ){
+    for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
+      g_actors[ i ]->setMode( ( ( i + j ) & 1 ) ? Actor::ForceOn : Actor::ForceOff );
+      g_actors[ i ]->doJob();
+    }
+    Actor::applyActorsStates();
+    delay( 250 );
+  }
+
+  // blink all actors (all on/off)
+  for( uint8_t j = 0; j < 8; ++j ){
+    for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
+      g_actors[ i ]->setMode( ( j & 1 ) ? Actor::ForceOn : Actor::ForceOff );
+      g_actors[ i ]->doJob();
+    }
+    Actor::applyActorsStates();
+    delay( 250 );
+  }
+
+  // set all actors to standard mode
+  for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
+    g_actors[ i ]->setMode( Actor::Standard );
+    g_actors[ i ]->doJob();
+  }
+  Actor::applyActorsStates();
 }
 
 void setupActors(){

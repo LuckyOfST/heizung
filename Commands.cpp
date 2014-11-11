@@ -218,6 +218,10 @@ void cmdRequestTemp( Stream& in, Stream& out ){
   delayedCmd = &requestTemp;
 }
 
+void cmdTestActors( Stream& in, Stream& out ){
+  testActors();
+}
+
 Command commands[] = {
   cmdHelp,
   cmdDetect,
@@ -235,7 +239,8 @@ Command commands[] = {
   cmdForceActor,
   cmdSetTime,
   cmdGetTime,
-  cmdRequestTemp
+  cmdRequestTemp,
+  cmdTestActors
 };
 
 PROGMEM prog_uchar commandDescs[] = {
@@ -256,6 +261,7 @@ PROGMEM prog_uchar commandDescs[] = {
   "setTime\0 DD MM YY H M S\0" "Sets the time to day (DD), month (MM), year (YY); hour (H) minute (M) second (S).\0"
   "getTime\0\0" "Shows the current time.\0"
   "requestTemp\0\0" "Updates all sensors and sends their values via UDP (port 12888).\0"
+  "testActors\0\0" "Test all actors by force them on/off.\0"
   "\0"
 };
 
