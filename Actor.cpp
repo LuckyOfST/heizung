@@ -1,57 +1,61 @@
+#include <EEPROM.h>
 #include <arduino.h>
 #include <Streaming.h>
 #include <Wire.h>
 
 #include "Actor.h"
+#include "Tools.h"
 
 #ifdef ACTORS_COMMTYPE_CRYSTAL64IO
 #include <IOshield.h>
 #endif // ACTORS_COMMTYPE_CRYSTAL64IO
 
 Actor* g_actors[ ACTOR_COUNT + 1 ] = {
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
-  new Actor(),
+  new Actor( 0 ),
+  new Actor( 1 ),
+  new Actor( 2 ),
+  new Actor( 3 ),
+  new Actor( 4 ),
+  new Actor( 5 ),
+  new Actor( 6 ),
+  new Actor( 7 ),
+  new Actor( 8 ),
+  new Actor( 9 ),
+  new Actor( 10 ),
+  new Actor( 11 ),
+  new Actor( 12 ),
+  new Actor( 13 ),
+  new Actor( 14 ),
+  new Actor( 15 ),
+  new Actor( 16 ),
+  new Actor( 17 ),
+  new Actor( 18 ),
+  new Actor( 19 ),
+  new Actor( 20 ),
+  new Actor( 21 ),
+  new Actor( 22 ),
+  new Actor( 23 ),
   0 // define 0 as last entry!
 };
 
-char g_an0[] PROGMEM = "a0";
-char g_an1[] PROGMEM = "a1";
-char g_an2[] PROGMEM = "a2";
-char g_an3[] PROGMEM = "a3";
-char g_an4[] PROGMEM = "a4";
-char g_an5[] PROGMEM = "a5";
-char g_an6[] PROGMEM = "a6";
-char g_an7[] PROGMEM = "a7";
+char g_an0[] PROGMEM = "a0";  // EG Kueche
+char g_an1[] PROGMEM = "a1";  // EG Wohnen
+char g_an2[] PROGMEM = "a2";  // EG Garderobe
+char g_an3[] PROGMEM = "a3";  // EG Flur
+char g_an4[] PROGMEM = "a4";  // EG Zimmer
+char g_an5[] PROGMEM = "a5";  // EG Bad
+char g_an6[] PROGMEM = "a6";  // DG
+char g_an7[] PROGMEM = "a7";  // OG WC
+
 char g_an8[] PROGMEM = "b0";
-char g_an9[] PROGMEM = "b1";
-char g_an10[] PROGMEM = "b2";
-char g_an11[] PROGMEM = "b3";
-char g_an12[] PROGMEM = "b4";
-char g_an13[] PROGMEM = "b5";
-char g_an14[] PROGMEM = "b6";
-char g_an15[] PROGMEM = "b7";
+char g_an9[] PROGMEM = "b1";  // OG Bad
+char g_an10[] PROGMEM = "b2"; // OG Flur
+char g_an11[] PROGMEM = "b3"; // OG Kind 3
+char g_an12[] PROGMEM = "b4"; // OG Kind 2
+char g_an13[] PROGMEM = "b5"; // OG Eltern (OG Kind 1)
+char g_an14[] PROGMEM = "b6"; // OG Diele
+char g_an15[] PROGMEM = "b7"; // OG Arbeiten
+
 char g_an16[] PROGMEM = "c0";
 char g_an17[] PROGMEM = "c1";
 char g_an18[] PROGMEM = "c2";
@@ -175,13 +179,14 @@ void Actor::applyActorsStates(){
 }
 
 #ifdef ACTORS_COMMTYPE_DIRECT
-Actor::Actor( unsigned char pin )
+Actor::Actor( uint8_t id, unsigned char pin )
 #elif defined(ACTORS_COMMTYPE_SERIAL_V1) || defined( ACTORS_COMMTYPE_CRYSTAL64IO )
-Actor::Actor()
+Actor::Actor( uint8_t id )
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
 #endif // ACTORS_COMMTYPE_DIRECT
-:_level( 0 )
+:_id( id )
+,_level( 0 )
 ,_open( false )
 ,_state( false )
 ,_mode( Standard )
@@ -193,6 +198,11 @@ Actor::Actor()
 {
 }
 
+const char* Actor::getName() const{
+  strcpy_P( (char*)g_buffer, (char*)pgm_read_word(&(g_actorNames[ _id ])) );
+  return (char*)g_buffer;
+}
+  
 void Actor::setup( int i, int amount ){
   Job::setup( i, amount );
 #ifdef ACTORS_COMMTYPE_DIRECT
@@ -282,6 +292,9 @@ void Actor::update(){
 }
 
 void Actor::applyActorState( bool on ){
+  if ( on ^ _state ){
+    BEGINMSG "A " << getName() << ' ' << ( on ? 1 : 0 ) ENDMSG
+  }
 #ifdef ACTORS_COMMTYPE_DIRECT
 #ifdef INVERT_RELAIS_LEVEL
   digitalWrite( _pin, on ? LOW : HIGH );
@@ -309,6 +322,7 @@ void testActors(){
   // all off
   for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
     g_actors[ i ]->setMode( Actor::ForceOff );
+    g_actors[ i ]->doJob();
   }
   g_actorStateChanged = true;
   Actor::applyActorsStates();
@@ -353,6 +367,27 @@ void testActors(){
   Actor::applyActorsStates();
 }
 
+#if defined( ACTORS_COMMTYPE_CRYSTAL64IO )
+void Actor::setupI2C(){
+  Serial << F( "Wire.begin" ) << endl;
+  Wire.begin();
+  Serial << F( "IO.initilize" ) << endl;
+  IO.initialize();
+  Serial << F( "set pinmodes" ) << endl;
+  for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
+    IO.pinMode( i, OUTPUT );
+  }
+  TWBR = 12;
+  // set all actors to standard mode
+  for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
+    g_actors[ i ]->setMode( Actor::Standard );
+    g_actors[ i ]->doJob();
+  }
+  g_actorStateChanged = true;
+  Actor::applyActorsStates();
+}
+#endif
+
 void setupActors(){
   Serial << F( "Initializing actors." ) << endl;
 #ifdef ACTORS_COMMTYPE_DIRECT
@@ -363,12 +398,7 @@ void setupActors(){
   pinMode( ACTORS_SRCLK_PIN, OUTPUT );
 #elif defined( ACTORS_COMMTYPE_CRYSTAL64IO )
   // nothing to do...
-  Wire.begin();
-  IO.initialize();
-  for( uint8_t i = 0; i < ACTOR_COUNT; ++i ){
-    IO.pinMode( i, OUTPUT );
-  }
-  TWBR = 12;
+  Actor::setupI2C();
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
 #endif // ACTORS_COMMTYPE_DIRECT

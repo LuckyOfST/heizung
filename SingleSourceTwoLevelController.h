@@ -9,18 +9,20 @@ class SingleSourceTwoLevelController
 public:
   typedef enum{ Idle, WaitingForValue } SensorMode;
   
-  SingleSourceTwoLevelController( uint8_t id, unsigned short sensor, unsigned short actor );
+  SingleSourceTwoLevelController( uint8_t id, int8_t sensor, int8_t actor );
 
   virtual bool working() const;
 
   virtual unsigned long doJob();
 
+  virtual void printStatus( Stream& out );
+
 protected:
   virtual void heat( float level );
   
 private:
-  unsigned short _sensor;
-  unsigned short _actor;
+  int8_t _sensor;
+  int8_t _actor;
   float _heat;
   SensorMode _sensorMode;
 };

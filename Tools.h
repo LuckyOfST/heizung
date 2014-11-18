@@ -4,16 +4,19 @@
 #include <EEPROM.h>
 #include <Streaming.h>
 
+#include "Network.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 // IMPORTANT:
-// The profiles base must be at least CONTROLLER_COUNT * 3 bytes higher than the temp base.
+// The profiles base must be at least CONTROLLER_COUNT * EEPROM_CONTROLLER_SETTING_SIZE bytes higher than the temp base.
 // Set the reset define whenever the profile base changes, execute the program and send
 // a 'setProfiles 0' command to initialize the EEPROM correctly.
 
 //#define EEPROM_FORCE_PROFILE_RESET
 #define EEPROM_TEMP_BASE 0
 #define EEPROM_PROFILES_BASE 128
+#define EEPROM_CONTROLLER_SETTING_SIZE 4
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 

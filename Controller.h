@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 // define the number of temperature controllers (usually the number of rooms)
-#define CONTROLLER_COUNT 24
+#define CONTROLLER_COUNT 26
 
 // defines the time interval the controller updates its logic in milliseconds
 #define CONTROLLER_UPDATE_INTERVAL 5000ul
@@ -48,6 +48,10 @@ public:
   
   float getTargetT() const;
 
+  void setMinimumLevel( float minLevel );
+
+  float getMinimumLevel() const;
+
   float getT() const;
   
   virtual void writeSettings( Stream& s );
@@ -59,6 +63,8 @@ public:
   void setForcedLevel( float level );
   float getForcedLevel() const{ return _forcedLevel; }
   
+  virtual void printStatus( Stream& out );
+
 protected:
   // level: 0=off; 1=on (100%)
   virtual void heat( float level ) =0;

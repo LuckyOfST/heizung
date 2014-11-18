@@ -63,20 +63,12 @@ void cmdStatus( Stream& in, Stream& out ){
       if ( g_controller[ i ]->isProfileActive() ){
         out << F("profile ") << g_controller[ i ]->getProfileID() << F(", currently ");
       }
-      out << _FLOAT( g_controller[ i ]->getT(), 1 ) << F(" C.") << endl;
+      out << _FLOAT( g_controller[ i ]->getT(), 1 ) << F(" C. ");
     } else {
-      out << F("forced to level ") << g_controller[ i ]->getForcedLevel() << '.' << endl;
+      out << F("forced to level ") << g_controller[ i ]->getForcedLevel() << ". ";
     }
-      
-    /*if ( g_controller[ i ]->working() ){
-      out << F("set to ");
-      if ( g_controller[ i ]->isProfileActive() ){
-        out << F("profile ") << g_controller[ i ]->getProfileID() << F(", currently ");
-      }
-      out << _FLOAT( g_controller[ i ]->getT(), 1 ) << F(" C.") << endl;
-    } else {
-      out << F("out of function. (set to ") << _FLOAT( g_controller[ i ]->getTargetT(), 1 ) << F(" C.) with profile ") << g_controller[ i ]->getProfileID() << endl;
-    }*/
+    g_controller[ i ]->printStatus( out );
+    out << endl;
   }
   out << F("  TEMPERATURE PROFILES:") << endl;
   out << F("    ");
@@ -99,11 +91,32 @@ void cmdSet( Stream& in, Stream& out ){
   }
 }
 
+void cmdSetMinLevel( Stream& in, Stream& out ){
+  const char* name = readText( in );
+  float l = in.parseFloat();
+  if ( !strcmp( name, "all" ) ){
+    for( int i = 0; i < CONTROLLER_COUNT; ++i ){
+      g_controller[ i ]->setMinimumLevel( l );
+    }
+    out << F("Changed all controller minimum levels to ") << _FLOAT( l, 2 ) << '.' << endl;
+  } else {
+    Controller* c = Controller::find( name );
+    if ( c ){
+      float oldL = c->getMinimumLevel();
+      c->setMinimumLevel( l );
+      out << F("Changed controller '") << name << F("' minimum level from ") << _FLOAT( oldL, 1 ) << F(" to ") << _FLOAT( l, 2 ) << '.' << endl;
+    } else {
+      out << F("Unable to find controller '") << name << F("'.") << endl;
+    }
+  }
+}
+
 void cmdResetControllerTemperatures( Stream& in, Stream& out ){
   for( int i = 0; i < CONTROLLER_COUNT; ++i ){
     g_controller[ i ]->setTargetT( 21. );
+    g_controller[ i ]->setMinimumLevel( 0. );
   }
-  out << F("All controller target temperatures resetted to 21C.") << endl;
+  out << F("All controller target temperatures and minimum levels resetted to 21 C / 0%.") << endl;
 }
 
 void cmdResetControllerProfiles( Stream& in, Stream& out ){
@@ -130,6 +143,13 @@ void cmdGet( Stream& in, Stream& out ){
     out << F("Target temperature for controller '") << name << F("' is set to ") << _FLOAT( c->getTargetT(), 1 ) << F(" C.") << endl;
   } else {
     out << F("Unable to find controller '") << name << F("'.") << endl;
+  }
+}
+
+void cmdGetMinLevels( Stream& in, Stream& out ){
+  out << F("Controller minimum levels") << endl;
+  for( unsigned short i = 0; i < CONTROLLER_COUNT; ++i ){
+    out << F("  '") << g_controller[ i ]->getName() << F("': ") << _FLOAT( g_controller[ i ]->getMinimumLevel(), 2 ) << endl;
   }
 }
 
@@ -183,14 +203,21 @@ void cmdForceActor( Stream& in, Stream& out ){
 
 void cmdForceController( Stream& in, Stream& out ){
   const char* name = readText( in );
-  out << F( "Controller " ) << name;
-  Controller* c = Controller::find( name );
-  if ( !c ){
-    out << F( " not found." ) << endl;
-    return;
-  }
   float level = in.parseFloat();
-  c->setForcedLevel( level );
+  if ( !strcmp( name, "all" ) ){
+    for( unsigned short i = 0; i < CONTROLLER_COUNT; ++i ){
+      g_controller[ i ]->setForcedLevel( level );
+    }
+    out << F("All controllers");
+  } else {
+    out << F( "Controller " ) << name;
+    Controller* c = Controller::find( name );
+    if ( !c ){
+      out << F( " not found." ) << endl;
+      return;
+    }
+    c->setForcedLevel( level );
+  }
   if ( level == -1 ){
     out << F( " set to standard operating mode." ) << endl;
   } else {
@@ -222,6 +249,13 @@ void cmdTestActors( Stream& in, Stream& out ){
   testActors();
 }
 
+#if defined( ACTORS_COMMTYPE_CRYSTAL64IO )
+void cmdResetI2C( Stream& in, Stream& out ){
+  out << F("Trying to re-initialize i2c bus...") << endl;
+  Actor::setupI2C();
+}
+#endif
+
 Command commands[] = {
   cmdHelp,
   cmdDetect,
@@ -229,17 +263,23 @@ Command commands[] = {
   cmdResetErrors,
   cmdStatus,
   cmdSet,
+  cmdSetMinLevel,
   cmdResetControllerTemperatures,
   cmdResetControllerProfiles,
   cmdSetProfile,
   cmdGet,
+  cmdGetMinLevels,
   cmdGetProfiles,
   cmdSetProfiles,
   cmdGetTemp,
   cmdForceActor,
+  cmdForceController,
   cmdSetTime,
   cmdGetTime,
   cmdRequestTemp,
+#if defined( ACTORS_COMMTYPE_CRYSTAL64IO )
+  cmdResetI2C,
+#endif
   cmdTestActors
 };
 
@@ -249,18 +289,24 @@ PROGMEM prog_uchar commandDescs[] = {
   "errors\0\0" "Show the error count for all sensors.\0"
   "reseterrors\0\0" "Resets the error count for all sensors.\0"
   "status\0\0" "Shows the current temperatures of all sensors.\0"
-  "set\0 CID T\0" "Sets the target temperature of controller CID to T°C.\0"
-  "resetControllerTemperatures\0\0" "Resets the target temperature of all controllers to 21°C.\0"
+  "set\0 CID T\0" "Sets the target temperature of controller CID to T C.\0"
+  "setMinLevel\0 CID L\0" "Sets the minim level of controller CID (or 'all') to L [0..1].\0"
+  "resetControllerTemperatures\0\0" "Resets the target temperature of all controllers to 21 C.\0"
   "resetControllerProfiles\0\0" "Resets all controller profiles to 0 (no profile).\0"
   "setProfile\0 CID P\0" "Sets the profile for controller CID to profile nr. P (0 for no profile).\0"
   "get\0 CID\0" "Shows the current target temperature of controller CID.\0"
+  "getMinLevels\0\0" "Shows the minimum levels of all controllers.\0"
   "getProfiles\0\0" "Shows the profiles settings.\0"
   "setProfiles\0 XXX\0" "Sets the profiles (see documentation for format details).\0"
   "getTemp\0 PID DOW H M\0" "Gets the temperature set in profile PID for Day-Of-Week (0-6) DOW, Time H:M.\0"
   "forceActor\0 AID X\0" "forces the actor AID (or 'all') to bo on (X=1) or off (X=0) or to work in standard mode (X=-1).\0"
+  "forceController\0 CID X\0" "forces the controller CID (or 'all') to level X [0..1] or to work in standard mode (X=-1).\0"
   "setTime\0 DD MM YY H M S\0" "Sets the time to day (DD), month (MM), year (YY); hour (H) minute (M) second (S).\0"
   "getTime\0\0" "Shows the current time.\0"
   "requestTemp\0\0" "Updates all sensors and sends their values via UDP (port 12888).\0"
+#if defined( ACTORS_COMMTYPE_CRYSTAL64IO )
+  "resetI2C\0\0" "Reset the I2C bus.\0"
+#endif
   "testActors\0\0" "Test all actors by force them on/off.\0"
   "\0"
 };

@@ -58,18 +58,25 @@ public:
   static float getCurrentUsedAmperage();
   static float getCurrentRequiredAmperage();
   static void applyActorsStates();
-  
+#if defined( ACTORS_COMMTYPE_CRYSTAL64IO )
+  static void setupI2C();
+#endif
+
 #if defined( ACTORS_COMMTYPE_DIRECT )
-  Actor( unsigned char pin );
+  Actor( uint8_t id, unsigned char pin );
 #elif defined(ACTORS_COMMTYPE_SERIAL_V1) || defined( ACTORS_COMMTYPE_CRYSTAL64IO )
-  Actor();
+  Actor( uint8_t id );
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
 #endif // ACTORS_COMMTYPE_DIRECT
 
-  bool isOpen() const{ return _state; }
-  
+  uint8_t getID() const{ return _id; }
+
+  const char* getName() const;
+
   virtual void setup( int i, int amount );
+
+  bool isOpen() const{ return _state; }
   
   void setLevel( float level );
   
@@ -87,6 +94,7 @@ public:
   float _currentAmperage;
   unsigned long _switchOnTime;
   bool _waitingForPower;
+  uint8_t _id;
 #if defined( ACTORS_COMMTYPE_DIRECT )
   unsigned char _pin;
 #endif
