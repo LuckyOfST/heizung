@@ -50,7 +50,8 @@ void cmdStatus( Stream& in, Stream& out ){
     }
     // requesting an update leads to a long time until the result is presented...
     //s.update( true );
-    out << F("    '") << s._name << F("': ") << _FLOAT( s._temp, 1 ) << F(" C (") << s._errorCount << F(" errors)") << endl;
+    int age = now() - s._lastChange;
+    out << F("    '") << s._name << F("': ") << _FLOAT( s._temp, 1 ) << F(" C (") << s._errorCount << F(" errors, age: ") << age << F(" s)") << endl;
   }
   out << F("  CONTROLLERS:") << endl;
   for( unsigned short i = 0; i < CONTROLLER_COUNT; ++i ){

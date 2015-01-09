@@ -18,6 +18,10 @@ void writeTime( Stream& out ){
   out << F("Current time is ")  << lz(day()) << '.' << lz(month()) << '.' << year() << ' ' << lz(hour()) << ':' << lz(minute()) << ':' << lz(second()) << endl;
 }
 
+void writeTime( Stream& out, const time_t& t ){
+  out << lz(day(t)) << '.' << lz(month(t)) << '.' << year(t) << ' ' << lz(hour(t)) << ':' << lz(minute(t)) << ':' << lz(second(t));
+}
+
 const char* readText( Stream& s ){
   static char text[ 256 ];
   byte length = s.readBytesUntil( ' ', text, sizeof( text ) / sizeof( char ) );

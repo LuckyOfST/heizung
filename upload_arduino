@@ -1,0 +1,1 @@
+avrdude -P /dev/ttyACM0 -p m2560 -c stk500v2 -V -U flash:w:-:i < heizung.hex

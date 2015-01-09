@@ -3,6 +3,7 @@
 
 #include <EEPROM.h>
 #include <Streaming.h>
+#include <Time.h>
 
 #include "Network.h"
 
@@ -77,6 +78,7 @@ private:
 
 extern char* strlower( char* s );
 extern void writeTime( Stream& out );
+extern void writeTime( Stream& out, const time_t& t );
 extern const char* readText( Stream& s );
 extern void read( Stream& s, char* buffer, unsigned short bufferSize );
 

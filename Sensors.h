@@ -3,6 +3,7 @@
 
 #include <DallasTemperature.h>
 #include <OneWire.h>
+#include <Time.h>
 
 #include "Defines.h"
 
@@ -36,6 +37,7 @@ struct Sensor{
   };
   unsigned long _errorCount;
   float _temp;
+  time_t _lastChange;
 };
 
 extern void setupSensors();
