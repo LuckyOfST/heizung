@@ -77,6 +77,7 @@ private:
 };
 
 extern char* strlower( char* s );
+extern void setStartTime();
 extern void writeTime( Stream& out );
 extern void writeTime( Stream& out, const time_t& t );
 extern const char* readText( Stream& s );
@@ -87,6 +88,9 @@ extern EEPROMStream g_eeprom;;
 // BUFFER_LENGTH must be at least 48 bytes for NTPClient
 #define BUFFER_LENGTH 48
 extern unsigned char g_buffer[ BUFFER_LENGTH + 1 ];
+
+// The start time is used to remember since when the sketch is running. It is the first time a valid time was set.
+extern time_t g_startTime;
 
 #endif // Tools_h
 

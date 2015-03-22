@@ -43,34 +43,34 @@ Controller* g_controller[ CONTROLLER_COUNT + 1 ] = {
   0 // define 0 as last entry!
 };
 
-char g_cnC0[] PROGMEM = "DG";
-char g_cnC1[] PROGMEM = "OG_Bad";
-char g_cnC2[] PROGMEM = "OB_Bad_Handtuch";
-char g_cnC3[] PROGMEM = "OG_WC";
-char g_cnC4[] PROGMEM = "OG_Arbeit";
-char g_cnC5[] PROGMEM = "OG_Eltern";
-char g_cnC6[] PROGMEM = "OG_Kind2";
-char g_cnC7[] PROGMEM = "OG_Kind3";
-char g_cnC8[] PROGMEM = "OG_Flur";
-char g_cnC9[] PROGMEM = "OG_Diele";
-char g_cnC10[] PROGMEM = "EG_Garderobe";
-char g_cnC11[] PROGMEM = "EG_Bad";
-char g_cnC12[] PROGMEM = "EG_Zimmer";
-char g_cnC13[] PROGMEM = "EG_Wohnen";
-char g_cnC14[] PROGMEM = "EG_Kueche";
-char g_cnC15[] PROGMEM = "EG_Flur_Diele";
-char g_cnC16[] PROGMEM = "UG_Flur";
-char g_cnC17[] PROGMEM = "UG_Vorrat";
-char g_cnC18[] PROGMEM = "UG_Bad";
-char g_cnC19[] PROGMEM = "UG_Gast";
-char g_cnC20[] PROGMEM = "UG_Hobby";
-char g_cnC21[] PROGMEM = "UG_Keller";
-char g_cnC22[] PROGMEM = "UG_Waschen";
-char g_cnC23[] PROGMEM = "UG_Diele";
-char g_cnC24[] PROGMEM = "UG_Technik_Lueftung";
-char g_cnC25[] PROGMEM = "UG_Waschen_Lueftung";
+const char g_cnC0[] PROGMEM = "DG";
+const char g_cnC1[] PROGMEM = "OG_Bad";
+const char g_cnC2[] PROGMEM = "OB_Bad_Handtuch";
+const char g_cnC3[] PROGMEM = "OG_WC";
+const char g_cnC4[] PROGMEM = "OG_Arbeit";
+const char g_cnC5[] PROGMEM = "OG_Eltern";
+const char g_cnC6[] PROGMEM = "OG_Kind2";
+const char g_cnC7[] PROGMEM = "OG_Kind3";
+const char g_cnC8[] PROGMEM = "OG_Flur";
+const char g_cnC9[] PROGMEM = "OG_Diele";
+const char g_cnC10[] PROGMEM = "EG_Garderobe";
+const char g_cnC11[] PROGMEM = "EG_Bad";
+const char g_cnC12[] PROGMEM = "EG_Zimmer";
+const char g_cnC13[] PROGMEM = "EG_Wohnen";
+const char g_cnC14[] PROGMEM = "EG_Kueche";
+const char g_cnC15[] PROGMEM = "EG_Flur_Diele";
+const char g_cnC16[] PROGMEM = "UG_Flur";
+const char g_cnC17[] PROGMEM = "UG_Vorrat";
+const char g_cnC18[] PROGMEM = "UG_Bad";
+const char g_cnC19[] PROGMEM = "UG_Gast";
+const char g_cnC20[] PROGMEM = "UG_Hobby";
+const char g_cnC21[] PROGMEM = "UG_Keller";
+const char g_cnC22[] PROGMEM = "UG_Waschen";
+const char g_cnC23[] PROGMEM = "UG_Diele";
+const char g_cnC24[] PROGMEM = "UG_Technik_Lueftung";
+const char g_cnC25[] PROGMEM = "UG_Waschen_Lueftung";
 
-PGM_P g_controllerNames[ CONTROLLER_COUNT ] PROGMEM = {
+PGM_P const g_controllerNames[ CONTROLLER_COUNT ] PROGMEM = {
   g_cnC0,
   g_cnC1,
   g_cnC2,

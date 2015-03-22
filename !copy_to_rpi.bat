@@ -1,3 +1,3 @@
-c:\downloads\winscp556\winscp /command "option batch abort" "option confirm off" "open sftp://pi:raspberry@192.168.178.26/" "put C:\Users\Akoya-NB\AppData\Local\VMicro\Arduino\Builds\heizung\mega2560\heizung.hex /home/pi/" "exit"
+"C:\Users\Pick\Downloads\winscp570\winscp" /command "option batch abort" "option confirm off" "open sftp://pi:raspberry@192.168.178.26/" "put C:\Users\Pick\AppData\Local\V.Micro\Arduino\Builds\heizung\mega_atmega2560\heizung.hex /home/pi/" "exit"
 @rem c:\downloads\winscp556\winscp /command "option batch abort" "option confirm off" "open sftp://pi:raspberry@192.168.178.26/" "put C:\Users\Akoya-NB\Documents\Arduino\heizung\upload_arduino /home/pi/" "exit"
 @pause

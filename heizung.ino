@@ -55,11 +55,14 @@ void setup(){
 
 void interpret( Stream& in, Stream& out ){
   char cmd[ 256 ];
+  memset( cmd, 0, 256 );
   read( in, cmd, sizeof( cmd ) );
+  //out << cmd << endl;
   int idx = 0;
   StringStream s;
   commandText( s, true );
   while ( commandText( s ) ){
+    //out << s.c_str() << endl;
     if ( !strcmp( cmd, s.c_str() ) ){
       commands[ idx ]( in, out );
       return;

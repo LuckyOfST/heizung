@@ -21,7 +21,7 @@
 
 class Controller;
 
-extern PROGMEM const char* g_controllerNames[];
+extern PROGMEM const char* const g_controllerNames[];
 extern Controller* g_controller[ CONTROLLER_COUNT + 1 ];
 
 class Controller

@@ -7,6 +7,8 @@ EEPROMStream g_eeprom;
 
 unsigned char g_buffer[ BUFFER_LENGTH + 1 ];
 
+time_t g_startTime;
+
 char* strlower( char* s ){
   for( char* p = s; *p; ++p ){
     *p = tolower( *p );
@@ -14,8 +16,19 @@ char* strlower( char* s ){
   return s;
 }
 
+void setStartTime(){
+  static bool first = true;
+  if ( first ){
+    first = false;
+    g_startTime = now();
+  }
+}
+
 void writeTime( Stream& out ){
-  out << F("Current time is ")  << lz(day()) << '.' << lz(month()) << '.' << year() << ' ' << lz(hour()) << ':' << lz(minute()) << ':' << lz(second()) << endl;
+  //out << F("Current time is ")  << lz(day()) << '.' << lz(month()) << '.' << year() << ' ' << lz(hour()) << ':' << lz(minute()) << ':' << lz(second()) << endl;
+  out << F( "Current time is " );
+  writeTime( out, now() );
+  out << endl;
 }
 
 void writeTime( Stream& out, const time_t& t ){

@@ -38,34 +38,34 @@ Actor* g_actors[ ACTOR_COUNT + 1 ] = {
   0 // define 0 as last entry!
 };
 
-char g_an0[] PROGMEM = "a0";  // EG Kueche
-char g_an1[] PROGMEM = "a1";  // EG Wohnen
-char g_an2[] PROGMEM = "a2";  // EG Garderobe
-char g_an3[] PROGMEM = "a3";  // EG Flur
-char g_an4[] PROGMEM = "a4";  // EG Zimmer
-char g_an5[] PROGMEM = "a5";  // EG Bad
-char g_an6[] PROGMEM = "a6";  // DG
-char g_an7[] PROGMEM = "a7";  // OG WC
+const char g_an0[] PROGMEM = "a0";  // EG Kueche
+const char g_an1[] PROGMEM = "a1";  // EG Wohnen
+const char g_an2[] PROGMEM = "a2";  // EG Garderobe
+const char g_an3[] PROGMEM = "a3";  // EG Flur
+const char g_an4[] PROGMEM = "a4";  // EG Zimmer
+const char g_an5[] PROGMEM = "a5";  // EG Bad
+const char g_an6[] PROGMEM = "a6";  // DG
+const char g_an7[] PROGMEM = "a7";  // OG WC
 
-char g_an8[] PROGMEM = "b0";
-char g_an9[] PROGMEM = "b1";  // OG Bad
-char g_an10[] PROGMEM = "b2"; // OG Flur
-char g_an11[] PROGMEM = "b3"; // OG Kind 3
-char g_an12[] PROGMEM = "b4"; // OG Kind 2
-char g_an13[] PROGMEM = "b5"; // OG Eltern (OG Kind 1)
-char g_an14[] PROGMEM = "b6"; // OG Diele
-char g_an15[] PROGMEM = "b7"; // OG Arbeiten
+const char g_an8[] PROGMEM = "b0";
+const char g_an9[] PROGMEM = "b1";  // OG Bad
+const char g_an10[] PROGMEM = "b2"; // OG Flur
+const char g_an11[] PROGMEM = "b3"; // OG Kind 3
+const char g_an12[] PROGMEM = "b4"; // OG Kind 2
+const char g_an13[] PROGMEM = "b5"; // OG Eltern (OG Kind 1)
+const char g_an14[] PROGMEM = "b6"; // OG Diele
+const char g_an15[] PROGMEM = "b7"; // OG Arbeiten
 
-char g_an16[] PROGMEM = "c0";
-char g_an17[] PROGMEM = "c1";
-char g_an18[] PROGMEM = "c2";
-char g_an19[] PROGMEM = "c3";
-char g_an20[] PROGMEM = "c4";
-char g_an21[] PROGMEM = "c5";
-char g_an22[] PROGMEM = "c6";
-char g_an23[] PROGMEM = "c7";
+const char g_an16[] PROGMEM = "c0";
+const char g_an17[] PROGMEM = "c1";
+const char g_an18[] PROGMEM = "c2";
+const char g_an19[] PROGMEM = "c3";
+const char g_an20[] PROGMEM = "c4";
+const char g_an21[] PROGMEM = "c5";
+const char g_an22[] PROGMEM = "c6";
+const char g_an23[] PROGMEM = "c7";
 
-PGM_P g_actorNames[ ACTOR_COUNT ] PROGMEM = {
+PGM_P const g_actorNames[ACTOR_COUNT] PROGMEM = {
   g_an0,
   g_an1,
   g_an2,

@@ -86,7 +86,8 @@ void execWebserver(){
           ( strstr( clientline, " HTTP" ) )[ 0 ] = 0;
 
           if ( *filename == 0 ){
-            filename = "index.htm";
+            //filename = "index.htm";
+            filename = "?cmd=status";
           }
           
           if ( *filename == '?' ){

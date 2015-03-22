@@ -45,7 +45,7 @@
 
 class Actor;
 
-extern PROGMEM const char* g_actorNames[];
+extern PROGMEM const char* const g_actorNames[];
 extern Actor* g_actors[ ACTOR_COUNT + 1 ];
 
 class Actor

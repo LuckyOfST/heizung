@@ -111,6 +111,7 @@ void setupNTP(){
     Serial << F("  ");
     writeTime( Serial );
   }
+  setStartTime();
 }
 
 #endif // SUPPORT_NTP

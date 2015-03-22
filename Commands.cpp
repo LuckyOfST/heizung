@@ -40,7 +40,9 @@ void cmdResetErrors( Stream& in, Stream& out ){
 
 void cmdStatus( Stream& in, Stream& out ){
   writeTime( out );
-  out << F("Begin status") << endl;
+  out << F( "Running since " );
+  writeTime( out, g_startTime );
+  out << endl << F("Begin status") << endl;
   out << F("  SENSORS:") << endl;
   for( unsigned short i = 0; i < SENSOR_COUNT; ++i ){
     Sensor& s = getSensor( i );
@@ -234,6 +236,7 @@ void cmdSetTime( Stream& in, Stream& out ){
   int m = in.parseInt();
   int s = in.parseInt();
   setTime( h, m, s, d, mo, y);
+  setStartTime();
   out << F("Time set to ")  << lz(day()) << '.' << lz(month()) << '.' << year() << ' ' << lz(hour()) << ':' << lz(minute()) << ':' << lz(second()) << endl;
 }
 
@@ -284,7 +287,7 @@ Command commands[] = {
   cmdTestActors
 };
 
-PROGMEM prog_uchar commandDescs[] = {
+const char commandDescs[] PROGMEM =
   "help\0\0" "Shows this help info.\0"
   "detect\0\0" "Detect all missing and new devices (sensors).\0"
   "errors\0\0" "Show the error count for all sensors.\0"
@@ -309,13 +312,12 @@ PROGMEM prog_uchar commandDescs[] = {
   "resetI2C\0\0" "Reset the I2C bus.\0"
 #endif
   "testActors\0\0" "Test all actors by force them on/off.\0"
-  "\0"
-};
+  ;
 
 bool commandText( Stream& out, bool reset ){
-  static const char* t = ((const char*)commandDescs);
+  static const char* t = commandDescs;
   if ( reset ){
-    t = ((const char*)commandDescs);
+    t = commandDescs;
     return true;
   }
   size_t length = strlen_P( t );
