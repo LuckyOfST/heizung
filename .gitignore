@@ -1,8 +1,6 @@
 *.opensdf
 *.sdf
-*.sln
 *.suo
-*.vcxproj
 *.filters
 *.user
 Visual Micro/.heizung.vsarduino.h
