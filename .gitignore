@@ -35,3 +35,4 @@ GUI/build-HeizungGUI-Desktop_Qt_5_3_MSVC2010_OpenGL_32bit-Release/release/Heizun
 GUI/build-HeizungGUI-Desktop_Qt_5_3_MSVC2010_OpenGL_32bit-Release/release/moc_Heizung.cpp
 GUI/build-HeizungGUI-Desktop_Qt_5_3_MSVC2010_OpenGL_32bit-Release/release/moc_TempModel.cpp
 GUI/build-HeizungGUI-Desktop_Qt_5_3_MSVC2010_OpenGL_32bit-Release/ui_Heizung.h
+*.bak

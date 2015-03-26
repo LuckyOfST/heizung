@@ -14,13 +14,15 @@ public:
   virtual QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
   virtual QVariant headerData( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
 
-  void setValue( const QString& key, float value );
+  void setValue( const QString& key, float value, int age );
 
 signals:
 
 public slots:
 
 private:
+  mutable QMutex _m;
+
   typedef QMap<QString,float> Values;
   Values _values;
 

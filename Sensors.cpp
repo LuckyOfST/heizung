@@ -93,12 +93,12 @@ bool Sensor::update( bool waitForValue ){
     _temp = t;
     _lastChange = now();
   }
-  sendT();
+  sendStatus();
   return true;
 }
 
-void Sensor::sendT(){
-  BEGINMSG "T " << _name << ' ' << _FLOAT( _temp, 1 ) ENDMSG
+void Sensor::sendStatus(){
+  BEGINMSG "T " << _name << ' ' << _FLOAT( _temp, 1 ) << ' ' << int( now() - _lastChange ) ENDMSG
 }
 
 unsigned short findSensor( const DeviceAddress& addr ){

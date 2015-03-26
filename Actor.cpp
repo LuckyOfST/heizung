@@ -38,16 +38,16 @@ Actor* g_actors[ ACTOR_COUNT + 1 ] = {
   0 // define 0 as last entry!
 };
 
-const char g_an0[] PROGMEM = "a0";  // EG Kueche
-const char g_an1[] PROGMEM = "a1";  // EG Wohnen
-const char g_an2[] PROGMEM = "a2";  // EG Garderobe
-const char g_an3[] PROGMEM = "a3";  // EG Flur
-const char g_an4[] PROGMEM = "a4";  // EG Zimmer
-const char g_an5[] PROGMEM = "a5";  // EG Bad
-const char g_an6[] PROGMEM = "a6";  // DG
-const char g_an7[] PROGMEM = "a7";  // OG WC
+const char g_an0[] PROGMEM = "a0";  // UG Keller
+const char g_an1[] PROGMEM = "a1";  // UG Flur
+const char g_an2[] PROGMEM = "a2";  // UG Hobby
+const char g_an3[] PROGMEM = "a3";  // UG Gast
+const char g_an4[] PROGMEM = "a4";  // UG Bad
+const char g_an5[] PROGMEM = "a5";  // UG Vorrat
+const char g_an6[] PROGMEM = "a6";  // UG Diele
+const char g_an7[] PROGMEM = "a7";  // n/a
 
-const char g_an8[] PROGMEM = "b0";
+const char g_an8[] PROGMEM = "b0";  // UG Waschen
 const char g_an9[] PROGMEM = "b1";  // OG Bad
 const char g_an10[] PROGMEM = "b2"; // OG Flur
 const char g_an11[] PROGMEM = "b3"; // OG Kind 3
@@ -56,16 +56,16 @@ const char g_an13[] PROGMEM = "b5"; // OG Eltern (OG Kind 1)
 const char g_an14[] PROGMEM = "b6"; // OG Diele
 const char g_an15[] PROGMEM = "b7"; // OG Arbeiten
 
-const char g_an16[] PROGMEM = "c0";
-const char g_an17[] PROGMEM = "c1";
-const char g_an18[] PROGMEM = "c2";
-const char g_an19[] PROGMEM = "c3";
-const char g_an20[] PROGMEM = "c4";
-const char g_an21[] PROGMEM = "c5";
-const char g_an22[] PROGMEM = "c6";
-const char g_an23[] PROGMEM = "c7";
+const char g_an16[] PROGMEM = "c0"; // EG Kueche
+const char g_an17[] PROGMEM = "c1"; // EG Wohnen
+const char g_an18[] PROGMEM = "c2"; // EG Garderobe
+const char g_an19[] PROGMEM = "c3"; // EG Flur + Diele
+const char g_an20[] PROGMEM = "c4"; // EG Zimmer
+const char g_an21[] PROGMEM = "c5"; // EG Bad
+const char g_an22[] PROGMEM = "c6"; // DG
+const char g_an23[] PROGMEM = "c7"; // OG WC
 
-PGM_P const g_actorNames[ACTOR_COUNT] PROGMEM = {
+PGM_P const g_actorNames[ ACTOR_COUNT ] PROGMEM = {
   g_an0,
   g_an1,
   g_an2,
@@ -292,9 +292,7 @@ void Actor::update(){
 }
 
 void Actor::applyActorState( bool on ){
-  if ( on ^ _state ){
-    BEGINMSG "A " << getName() << ' ' << ( on ? 1 : 0 ) ENDMSG
-  }
+  bool stateChanged = on ^ _state;
 #ifdef ACTORS_COMMTYPE_DIRECT
 #ifdef INVERT_RELAIS_LEVEL
   digitalWrite( _pin, on ? LOW : HIGH );
@@ -302,13 +300,20 @@ void Actor::applyActorState( bool on ){
   digitalWrite( _pin, on ? HIGH : LOW );
 #endif // INVERT_RELAIS_LEVEL
 #elif defined(ACTORS_COMMTYPE_SERIAL_V1) || defined( ACTORS_COMMTYPE_CRYSTAL64IO )
-  g_actorStateChanged |= on ^ _state;
+  g_actorStateChanged |= stateChanged;
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
 #endif // ACTORS_COMMTYPE_DIRECT
   _state = on;
+  if ( stateChanged ){
+    sendStatus();
+  }
 }
   
+void Actor::sendStatus() const{
+  BEGINMSG "A " << getName() << ' ' << ( _state ? 1 : 0 ) ENDMSG
+}
+
 Actor* Actor::findActor( const char* name ){
   for( int i = 0; i < ACTOR_COUNT; ++i ){
     if ( !strcmp_P( name, (PGM_P)pgm_read_word(&g_actorNames[ i ] )) ){

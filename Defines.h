@@ -15,6 +15,7 @@
 #define SUPPORT_TemperatureUploader
 #define SUPPORT_UDP_messages
 #define SUPPORT_Webserver
+//#define SUPPORT_eBus
 
 //////////////////////////////////////////////////////////////////////////////
 

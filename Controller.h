@@ -44,6 +44,7 @@ public:
 
   bool isProfileActive() const{ return getTargetT() == 0; }
   
+  // target T set by the user or 0 if profile should be used.
   void setTargetT( float t );
   
   float getTargetT() const;
@@ -52,8 +53,12 @@ public:
 
   float getMinimumLevel() const;
 
+  // target T (by user or profile)
   float getT() const;
-  
+
+  // T measured by sensor(s) used to compare against the target T
+  virtual float getMeasuredT() const;
+
   virtual void writeSettings( Stream& s );
   
   virtual void readSettings( Stream& s );
@@ -63,7 +68,9 @@ public:
   void setForcedLevel( float level );
   float getForcedLevel() const{ return _forcedLevel; }
   
-  virtual void printStatus( Stream& out );
+  virtual void printStatus( Stream& out ) const;
+
+  virtual void sendStatus() const;
 
 protected:
   // level: 0=off; 1=on (100%)

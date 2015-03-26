@@ -37,6 +37,9 @@ void (*delayedCmd)() =0;
 void setup(){
   Serial.begin( 19200 );
   Serial << F( "--- SETUP STARTING ---" ) << endl;
+#ifdef SUPPORT_eBus
+  Serial1.begin( 2400 );
+#endif
 #ifdef SUPPORT_Network
   setupNetwork();
 #endif
@@ -55,14 +58,11 @@ void setup(){
 
 void interpret( Stream& in, Stream& out ){
   char cmd[ 256 ];
-  memset( cmd, 0, 256 );
   read( in, cmd, sizeof( cmd ) );
-  //out << cmd << endl;
   int idx = 0;
   StringStream s;
   commandText( s, true );
   while ( commandText( s ) ){
-    //out << s.c_str() << endl;
     if ( !strcmp( cmd, s.c_str() ) ){
       commands[ idx ]( in, out );
       return;
@@ -104,7 +104,27 @@ void loop(){
   Actor::applyActorsStates();
 
   digitalWrite( 13, LOW );
+#ifndef SUPPORT_eBus
   DEBUG{ Serial << F("minDelay=") << minDelay << endl; }
   delay( minDelay );
+#endif
 }
 
+#if defined(SUPPORT_Network) && defined(SUPPORT_eBus)
+char hex( unsigned char c ){
+  if ( c < 10 ){
+    return '0' + c;
+  }
+  return 'A' + c - 10;
+}
+
+void serialEvent1(){
+  Udp.beginPacket( 0xffffffff, 12888 );
+  Udp << "eBus: ";
+  while ( Serial1.available() ){
+    unsigned char c = (unsigned char)Serial1.read();
+    Udp << hex(c>>4) << hex(c&0xf) << ' ';
+  }
+  Udp.endPacket();
+}
+#endif

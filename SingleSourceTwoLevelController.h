@@ -7,15 +7,17 @@ class SingleSourceTwoLevelController
 :public Controller
 {
 public:
-  typedef enum{ Idle, WaitingForValue } SensorMode;
-  
   SingleSourceTwoLevelController( uint8_t id, int8_t sensor, int8_t actor );
 
   virtual bool working() const;
 
   virtual unsigned long doJob();
 
-  virtual void printStatus( Stream& out );
+  float getMeasuredT() const;
+
+  virtual void printStatus( Stream& out ) const;
+
+  virtual void sendStatus() const;
 
 protected:
   virtual void heat( float level );
@@ -23,8 +25,8 @@ protected:
 private:
   int8_t _sensor;
   int8_t _actor;
+  float _currentT;
   float _heat;
-  SensorMode _sensorMode;
 };
 
 #endif // SingleSourceTwoLevelController_h

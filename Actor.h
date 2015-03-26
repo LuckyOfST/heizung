@@ -88,6 +88,8 @@ public:
 
   virtual void update();
   
+  void sendStatus() const;
+
   float _level;
   bool _open;
   bool _state;

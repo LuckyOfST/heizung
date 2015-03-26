@@ -24,7 +24,7 @@ struct Sensor{
   void requestValue();
   bool isAvailable();
   bool update( bool waitForValue = false );
-  void sendT();
+  void sendStatus();
 
   char* _name;
   byte _bus;

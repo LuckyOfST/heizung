@@ -10,8 +10,8 @@ SingleSourceTwoLevelController::SingleSourceTwoLevelController( uint8_t id, int8
 :Controller( id )
 ,_sensor( sensor )
 ,_actor( actor )
+,_currentT( 0.f )
 ,_heat( 0.f )
-,_sensorMode( Idle )
 {
 }
 
@@ -32,52 +32,51 @@ unsigned long SingleSourceTwoLevelController::doJob(){
     //Serial << _name << F(": skipped due missing sensor '") << g_sensors[ _sensor ]._name << F("'.") << endl;
     return CONTROLLER_UPDATE_INTERVAL;
   }
-  if ( _sensorMode == Idle ){
-    sensor.requestValue();
-    _sensorMode = WaitingForValue;
-  }
-  if ( _sensorMode == WaitingForValue ){
-    if ( !sensor.isAvailable() ){
-      return 100;
-    }
-    _sensorMode = Idle;
+  sensor.requestValue();
+  if ( !sensor.isAvailable() ){
+    return 1000;
   }
   if ( !sensor.update() ){
     Serial << getName() << F(": error in temperature update!") << endl;
     return CONTROLLER_UPDATE_INTERVAL;
   }
 
-  float t = sensor._temp;
+  _currentT = sensor._temp;
 #else
   float t = 21.f;
 #endif
   
   // execute special functions (like weekly water flow in heating system)
-  unsigned long dt = specialFunctions( t );
+  unsigned long dt = specialFunctions( _currentT );
   if ( dt > 0 ){
     return dt;
   }
 
-  if ( t < getT() ){
+  if ( _currentT < getT() ){
     heat( 1.f );
-  } else if ( t > getT() ){
+  } else if ( _currentT > getT() ){
     heat( getMinimumLevel() );
   }
   return CONTROLLER_UPDATE_INTERVAL - 100;
+}
+
+float SingleSourceTwoLevelController::getMeasuredT() const{
+  return _currentT;
 }
 
 void SingleSourceTwoLevelController::heat( float level ){
   if ( level != _heat ){
     _heat = level;
     DEBUG2{ Serial << lz(day()) << '.' << lz(month()) << '.' << year() << ',' << lz(hour()) << ':' << lz(minute()) << ':' << lz(second()) << F(" : ") << getName() << ( ( level > 0.f ) ? F(": start") : F(": stop") ) << F(" heating. (level ") << _FLOAT( level, 2 ) << F(")") << endl; }
-    BEGINMSG "H " << getName() << ' ' << _FLOAT( level, 2 ) ENDMSG
+    sendStatus();
     if ( _actor != -1 ){
       g_actors[ _actor ]->setLevel( level );
     }
   }
 }
 
-void SingleSourceTwoLevelController::printStatus( Stream& out ){
+void SingleSourceTwoLevelController::printStatus( Stream& out ) const{
+  sendStatus();
   if ( _sensor == -1 || _actor == -1 ){
     out << F( "NOT WORKING" );
     return;
@@ -87,5 +86,13 @@ void SingleSourceTwoLevelController::printStatus( Stream& out ){
     if ( _heat < 1 ){
       out << '(' << int( _heat * 100 ) << F( "%)" );
     }
+  }
+}
+
+void SingleSourceTwoLevelController::sendStatus() const{
+  // C name profileID currentT targetT heatingLevel minimumLevel forcedLevel
+  BEGINMSG "C " << getName() << ' ' << getProfileID() << ' ' << _FLOAT( getMeasuredT(), 1 ) << ' ' << _FLOAT( getT(), 1 ) << ' ' << _FLOAT( _heat, 2 ) << ' ' << _FLOAT( getMinimumLevel(), 2 ) << ' ' << _FLOAT( getForcedLevel(), 2 ) ENDMSG
+  if ( _actor != -1 ){
+    g_actors[ _actor ]->sendStatus();
   }
 }

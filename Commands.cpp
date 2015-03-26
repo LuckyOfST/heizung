@@ -54,6 +54,7 @@ void cmdStatus( Stream& in, Stream& out ){
     //s.update( true );
     int age = now() - s._lastChange;
     out << F("    '") << s._name << F("': ") << _FLOAT( s._temp, 1 ) << F(" C (") << s._errorCount << F(" errors, age: ") << age << F(" s)") << endl;
+    s.sendStatus();
   }
   out << F("  CONTROLLERS:") << endl;
   for( unsigned short i = 0; i < CONTROLLER_COUNT; ++i ){

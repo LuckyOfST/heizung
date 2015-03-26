@@ -2,6 +2,7 @@
 
 TempModel::TempModel( QObject* parent )
   :QAbstractTableModel( parent )
+  ,_m( QMutex::Recursive )
 {
 }
 
@@ -9,6 +10,7 @@ int TempModel::rowCount( const QModelIndex& parent ) const{
   if ( parent.isValid() ){
     return 0;
   }
+  QMutexLocker m( &_m );
   return _values.size();
 }
 
@@ -23,6 +25,7 @@ QVariant TempModel::data( const QModelIndex& index, int role ) const{
   if ( !index.isValid() || index.parent().isValid() ){
     return QVariant();
   }
+  QMutexLocker m( &_m );
   switch ( role ){
   case Qt::DisplayRole:
     switch ( index.column() ){
@@ -49,7 +52,8 @@ QVariant TempModel::headerData( int section, Qt::Orientation orientation, int ro
   return QVariant();
 }
 
-void TempModel::setValue( const QString& key, float value ){
+void TempModel::setValue( const QString& key, float value, int age ){
+  QMutexLocker m( &_m );
   Values::iterator itr = _values.find( key );
   if ( itr == _values.end() ){
     _values.insert( key, value );

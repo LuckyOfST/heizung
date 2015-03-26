@@ -26,6 +26,7 @@ private:
   QUdpSocket _udpSocket;
 
   TempModel* _tempModel;
+  TempModel* _controllerModel;
 
 private slots:
   void readPendingDatagrams();

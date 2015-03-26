@@ -14,30 +14,30 @@
 //     "sensor" is the index in g_sensors of the sensor used as current temperature source
 //     "actor" is the index in g_actors of the actor to be controlled by this controller.
 Controller* g_controller[ CONTROLLER_COUNT + 1 ] = {
-  new SingleSourceTwoLevelController( 0, 24, 17 ),
+  new SingleSourceTwoLevelController( 0, 24, 22 ),
   new SingleSourceTwoLevelController( 1, 18, 9 ),
   new SingleSourceTwoLevelController( 2, -1, -1 ), // N/A
-  new SingleSourceTwoLevelController( 3, 19, 16 ),
+  new SingleSourceTwoLevelController( 3, 19, 23 ),
   new SingleSourceTwoLevelController( 4, 20, 15 ),
   new SingleSourceTwoLevelController( 5, 21, 13 ),
   new SingleSourceTwoLevelController( 6, 16, 12 ),
   new SingleSourceTwoLevelController( 7, 17, 11 ),
   new SingleSourceTwoLevelController( 8, 23, 10 ),
   new SingleSourceTwoLevelController( 9, 22, 14 ),
-  new SingleSourceTwoLevelController( 10, 9, 21 ),
-  new SingleSourceTwoLevelController( 11, 11, 18 ),
-  new SingleSourceTwoLevelController( 12, 12, 19 ),
-  new SingleSourceTwoLevelController( 13, 13, 22 ), // EG_Wohnen / 2 sensors (13+14)!
-  new SingleSourceTwoLevelController( 14, 15, 23 ),
-  new SingleSourceTwoLevelController( 15, 10, 20 ), // EG_Flur_Diele / 2 sensors (10 + 8)
-  new SingleSourceTwoLevelController( 16, 4, -1 ), // UG_Flur_Diele / 2 sensors (4 + 3)
-  new SingleSourceTwoLevelController( 17, 5, -1 ), 
-  new SingleSourceTwoLevelController( 18, 6, -1 ),
-  new SingleSourceTwoLevelController( 19, 1, -1 ),
-  new SingleSourceTwoLevelController( 20, 2, -1 ),
-  new SingleSourceTwoLevelController( 21, 7, -1 ),
-  new SingleSourceTwoLevelController( 22, 0, -1 ),
-  new SingleSourceTwoLevelController( 23, 3, -1 ),
+  new SingleSourceTwoLevelController( 10, 9, 18 ),
+  new SingleSourceTwoLevelController( 11, 11, 21 ),
+  new SingleSourceTwoLevelController( 12, 12, 20 ),
+  new SingleSourceTwoLevelController( 13, 13, 17 ), // EG_Wohnen / 2 sensors (13+14)!
+  new SingleSourceTwoLevelController( 14, 15, 16 ),
+  new SingleSourceTwoLevelController( 15, 10, 19 ), // EG_Flur_Diele / 2 sensors (10 + 8)
+  new SingleSourceTwoLevelController( 16, 4, 1 ), // UG_Flur_Diele / 2 sensors (4 + 3)
+  new SingleSourceTwoLevelController( 17, 5, 5 ), 
+  new SingleSourceTwoLevelController( 18, 6, 4 ),
+  new SingleSourceTwoLevelController( 19, 1, 3 ),
+  new SingleSourceTwoLevelController( 20, 2, 2 ),
+  new SingleSourceTwoLevelController( 21, 7, 0 ),
+  new SingleSourceTwoLevelController( 22, 0, 8 ),
+  new SingleSourceTwoLevelController( 23, 3, 6 ),
   new SingleSourceTwoLevelController( 24, -1, -1 ),
   new SingleSourceTwoLevelController( 25, -1, -1 ),
   0 // define 0 as last entry!
@@ -45,7 +45,7 @@ Controller* g_controller[ CONTROLLER_COUNT + 1 ] = {
 
 const char g_cnC0[] PROGMEM = "DG";
 const char g_cnC1[] PROGMEM = "OG_Bad";
-const char g_cnC2[] PROGMEM = "OB_Bad_Handtuch";
+const char g_cnC2[] PROGMEM = "OG_Bad_Handtuch";
 const char g_cnC3[] PROGMEM = "OG_WC";
 const char g_cnC4[] PROGMEM = "OG_Arbeit";
 const char g_cnC5[] PROGMEM = "OG_Eltern";
@@ -164,6 +164,10 @@ float Controller::getT() const{
   }
   return targetT;
 }
+
+float Controller::getMeasuredT() const{
+  return 0.f;
+}
   
 void Controller::writeSettings( Stream& s ){
   s << getTargetT();
@@ -200,7 +204,10 @@ unsigned long Controller::specialFunctions( float t ){
   return 0;
 }
 
-void Controller::printStatus( Stream& out ){
+void Controller::printStatus( Stream& out ) const{
+}
+
+void Controller::sendStatus() const{
 }
 
 Controller* Controller::find( const char* name ){
