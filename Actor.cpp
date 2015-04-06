@@ -35,6 +35,7 @@ Actor* g_actors[ ACTOR_COUNT + 1 ] = {
   new Actor( 21 ),
   new Actor( 22 ),
   new Actor( 23 ),
+  new Actor( 24 ),
   0 // define 0 as last entry!
 };
 
@@ -65,6 +66,9 @@ const char g_an21[] PROGMEM = "c5"; // EG Bad
 const char g_an22[] PROGMEM = "c6"; // DG
 const char g_an23[] PROGMEM = "c7"; // OG WC
 
+// Switches...
+const char g_an24[] PROGMEM = "s0"; // UG Technik Lueftung
+
 PGM_P const g_actorNames[ ACTOR_COUNT ] PROGMEM = {
   g_an0,
   g_an1,
@@ -89,7 +93,8 @@ PGM_P const g_actorNames[ ACTOR_COUNT ] PROGMEM = {
   g_an20,
   g_an21,
   g_an22,
-  g_an23
+  g_an23,
+  g_an24
 };
 
 static float g_totalAmperage = 0.f; // current sum of all actors
@@ -204,6 +209,9 @@ const char* Actor::getName() const{
 }
   
 void Actor::setup( int i, int amount ){
+  if ( isSwitch() ){
+    return;
+  }
   Job::setup( i, amount );
 #ifdef ACTORS_COMMTYPE_DIRECT
   pinMode( _pin, OUTPUT );
@@ -211,6 +219,10 @@ void Actor::setup( int i, int amount ){
 }
   
 void Actor::setLevel( float level ){
+  if ( isSwitch() ){
+    applyActorState( _mode == Standard ? (level > 0.f) : (_mode == ForceOn) );
+    return;
+  }
   if ( level < 0.f ){
     level = 0.f;
   }
@@ -218,10 +230,13 @@ void Actor::setLevel( float level ){
     level = 1.f;
   }
   _level = level;
-  _delayMillis = (unsigned long)( ACTOR_CYCLE_INTERVAL * ( _open ? _level : ( 1.f - _level ) ) * 1000.f );
+  _delayMillis = (unsigned long)(ACTOR_CYCLE_INTERVAL * (_open ? _level : (1.f - _level)) * 1000.f);
 }
 
 unsigned long Actor::doJob(){
+  if ( isSwitch() ){
+    return ACTOR_CYCLE_INTERVAL;
+  }
   if ( _waitingForPower ){
     unsigned long delay = tryWrite( true );
     if ( _waitingForPower ){
@@ -245,6 +260,9 @@ unsigned long Actor::doJob(){
 void Actor::setMode( Mode mode ){
   _mode = mode;
   _delayMillis = 0;
+  if ( isSwitch() ){
+    setLevel( _level );
+  }
 }
   
 unsigned long Actor::tryWrite( bool on, unsigned long delay ){
@@ -280,7 +298,7 @@ unsigned long Actor::tryWrite( bool on, unsigned long delay ){
 } 
 
 void Actor::update(){
-  if ( _currentAmperage == 0.f ){
+  if ( isSwitch() || _currentAmperage == 0.f ){
     return;
   }
   g_totalAmperage -= _currentAmperage;

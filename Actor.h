@@ -9,7 +9,12 @@
 //////////////////////////////////////////////////////////////////////////////
 
 // defines the number of actors (relais) connected
-#define ACTOR_COUNT 24
+#define ACTOR_COUNT 25
+
+// defines the number of thermostat actors connected for amperage calculation.
+// The thermastat actors must be the first HEATING_ACTOR_COUNT actors. All other actors
+// are simple switches with level 0/1 only.
+#define HEATING_ACTOR_COUNT 24
 
 // define the cycle time of each actor in seconds (=PWM frequence)
 #define ACTOR_CYCLE_INTERVAL 60ul*20
@@ -83,12 +88,16 @@ public:
   virtual unsigned long doJob();
   
   void setMode( Mode mode );
+
+  Mode getMode() const{ return _mode; }
   
   unsigned long tryWrite( bool on, unsigned long delay = 0 );
 
   virtual void update();
   
   void sendStatus() const;
+
+  bool isSwitch() const{ return _id >= HEATING_ACTOR_COUNT; }
 
   float _level;
   bool _open;

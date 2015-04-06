@@ -74,6 +74,14 @@ void cmdStatus( Stream& in, Stream& out ){
     g_controller[ i ]->printStatus( out );
     out << endl;
   }
+  out << F( "  SWITCHES:" ) << endl;
+  for ( unsigned short i = HEATING_ACTOR_COUNT; i < ACTOR_COUNT; ++i ){
+    out << F( "    '" ) << g_actors[ i ]->getName() << F( "' " );
+    if ( g_actors[ i ]->getMode() != Actor::Standard ){
+      out << F( "FORCED " );
+    }
+    out << ( g_actors[ i ]->isOpen() ? F( "ON" ) : F( "OFF" ) ) << endl;
+  }
   out << F("  TEMPERATURE PROFILES:") << endl;
   out << F("    ");
   //g_tempProfile.writeSettings( out );
