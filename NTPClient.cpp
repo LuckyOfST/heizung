@@ -1,5 +1,3 @@
-#include <Time.h>
-
 #include "NTPClient.h"
 #include "Tools.h"
 
@@ -75,6 +73,11 @@ time_t getNtpTime(){
         showSuccess = false;
         BEGINMSG F("Time was synchronized to NTP time ") << lz(te.Day) << F(".") << lz(te.Month) << F(".") << 1970 + te.Year << F(" ") << lz(te.Hour) << F(":") << lz(te.Minute) << F(":") << lz(te.Second) << F(".") ENDMSG
       }
+      if ( !hasStartTime() ){
+        setSyncInterval( 60 * 60 * 24 );
+        setTime( t );
+        setStartTime();
+      }
       return t;
     }
   }
@@ -92,7 +95,6 @@ bool updateNTP(){
     time_t t = getNtpTime();
     DEBUG{ Serial << F("getNtpTime END") << endl; }
     if ( t != 0 ){
-      setTime( t );
       return true;
     }
     return false;
@@ -104,14 +106,13 @@ void setupNTP(){
   Serial << F("Initializing time using NTP.") << endl;
   Udp.begin( localNtpPort );
   setSyncProvider( getNtpTime );
-  setSyncInterval( 60 * 60 * 24 );
+  setSyncInterval( 30 ); // initially we try to sync every 30 seconds until we get the first time; this will change the interval to once a day.
   if ( !updateNTP() ){
     Serial << F("  Failed to get time using NTP.") << endl;
   } else {
     Serial << F("  ");
     writeTime( Serial );
   }
-  setStartTime();
 }
 
 #endif // SUPPORT_NTP

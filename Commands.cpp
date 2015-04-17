@@ -4,6 +4,7 @@
 #include "Actor.h"
 #include "Commands.h"
 #include "Controller.h"
+#include "NTPClient.h"
 #include "Sensors.h"
 #include "TemperatureProfiles.h"
 #include "Tools.h"
@@ -244,9 +245,24 @@ void cmdSetTime( Stream& in, Stream& out ){
   int h = in.parseInt();
   int m = in.parseInt();
   int s = in.parseInt();
-  setTime( h, m, s, d, mo, y);
-  setStartTime();
-  out << F("Time set to ")  << lz(day()) << '.' << lz(month()) << '.' << year() << ' ' << lz(hour()) << ':' << lz(minute()) << ':' << lz(second()) << endl;
+  if ( d > 0 ){
+#ifdef SUPPORT_NTP
+    setSyncProvider( 0 );
+    setSyncInterval( 60 * 60 * 24 );
+#endif
+    setTime( h, m, s, d, mo, y );
+    setStartTime();
+    out << F( "Time set to " );
+  }
+#ifdef SUPPORT_NTP
+  else{
+    setSyncProvider( getNtpTime );
+    setSyncInterval( 60 * 60 * 24 );
+    getNtpTime();
+    out << F( "Activated NTP: " );
+  }
+#endif
+  out << lz( day() ) << '.' << lz( month() ) << '.' << year() << ' ' << lz( hour() ) << ':' << lz( minute() ) << ':' << lz( second() ) << endl;
 }
 
 void cmdGetTime( Stream& in, Stream& out ){

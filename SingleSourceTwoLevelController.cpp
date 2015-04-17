@@ -52,10 +52,12 @@ unsigned long SingleSourceTwoLevelController::doJob(){
     return dt;
   }
 
-  if ( _currentT < getT() ){
+  bool minLevelActive = true;
+  float targetT = getT( minLevelActive );
+  if ( _currentT < targetT ){
     heat( 1.f );
-  } else if ( _currentT > getT() ){
-    heat( getMinimumLevel() );
+  } else if ( _currentT > targetT ){
+    heat( minLevelActive ? getMinimumLevel() : 0.f );
   }
   return CONTROLLER_UPDATE_INTERVAL - 100;
 }

@@ -151,7 +151,7 @@ float Controller::getMinimumLevel() const{
   return EEPROM.read( EEPROM_TEMP_BASE + _id * EEPROM_CONTROLLER_SETTING_SIZE + 3 ) / 255.f;
 }
 
-float Controller::getT() const{
+float Controller::getT( bool& activeFlag ) const{
   float targetT = getTargetT();
   if ( targetT == 0 ){
     TemperatureProfiles::setCurrentProfile( getProfileID() );
@@ -160,9 +160,14 @@ float Controller::getT() const{
     if ( day == -1 ){
       day = 6;
     }
-    return TemperatureProfiles::temp( day, hour( t ), minute( t ) );
+    return TemperatureProfiles::temp( day, hour( t ), minute( t ), activeFlag );
   }
   return targetT;
+}
+
+float Controller::getT() const{
+  bool active;
+  return getT( active );
 }
 
 float Controller::getMeasuredT() const{
@@ -201,6 +206,12 @@ unsigned long Controller::specialFunctions( float t ){
     return 1000ul * 60 * 5;
   }
   
+  // open actors every week (sunday 0:00) for 10 minutes to prevent blocking actors.
+  if ( weekday() == 1 && hour() == 0 && minute() < 10 ){
+    heat( 1.f );
+    return 1000ul * 60 * 10;
+  }
+
   return 0;
 }
 

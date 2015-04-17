@@ -7,7 +7,7 @@ EEPROMStream g_eeprom;
 
 unsigned char g_buffer[ BUFFER_LENGTH + 1 ];
 
-time_t g_startTime;
+time_t g_startTime = 0;
 
 char* strlower( char* s ){
   for( char* p = s; *p; ++p ){
@@ -16,10 +16,12 @@ char* strlower( char* s ){
   return s;
 }
 
+bool hasStartTime(){
+  return g_startTime != 0;
+}
+
 void setStartTime(){
-  static bool first = true;
-  if ( first ){
-    first = false;
+  if ( g_startTime == 0 && year() > 2014 ){
     g_startTime = now();
   }
 }

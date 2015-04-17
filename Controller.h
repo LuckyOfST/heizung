@@ -54,6 +54,11 @@ public:
   float getMinimumLevel() const;
 
   // target T (by user or profile)
+  // in profile mode the active flag of the used profile entry is returned, too.
+  // in user mode the activeFlag is not touched!
+  float getT( bool& activeFlag ) const;
+
+  // target T (by user or profile)
   float getT() const;
 
   // T measured by sensor(s) used to compare against the target T

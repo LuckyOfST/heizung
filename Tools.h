@@ -77,6 +77,7 @@ private:
 };
 
 extern char* strlower( char* s );
+extern bool hasStartTime();
 extern void setStartTime();
 extern void writeTime( Stream& out );
 extern void writeTime( Stream& out, const time_t& t );

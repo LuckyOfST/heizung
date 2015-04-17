@@ -7,10 +7,10 @@ namespace TemperatureProfiles{
 
   byte getNbProfiles();
   void setCurrentProfile( byte id );
-  byte getDays( int idx );
-  byte getStartTime( int idx );
-  float getTemp( int idx );
+  float value( byte day, byte hour, byte min );
+  float value( byte day, byte hour, byte min, bool& activeFlag );
   float temp( byte day, byte hour, byte min );
+  float temp( byte day, byte hour, byte min, bool& activeFlag );
   void writeSettings( Stream& s );
   void readSettings( Stream& s );
   

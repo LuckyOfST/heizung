@@ -5,6 +5,9 @@
 
 #ifdef SUPPORT_NTP
 
+#include <Time.h>
+
+extern time_t getNtpTime();
 extern void setupNTP();
 extern bool updateNTP();
 
