@@ -44,6 +44,8 @@ public:
 
   bool isProfileActive() const{ return getTargetT() == 0; }
   
+  virtual bool isSwitch() const = 0;
+
   // target T set by the user or 0 if profile should be used.
   void setTargetT( float t );
   

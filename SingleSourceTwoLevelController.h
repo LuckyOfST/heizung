@@ -9,6 +9,8 @@ class SingleSourceTwoLevelController
 public:
   SingleSourceTwoLevelController( uint8_t id, int8_t sensor, int8_t actor );
 
+  virtual bool isSwitch() const;
+
   virtual bool working() const;
 
   virtual unsigned long doJob();

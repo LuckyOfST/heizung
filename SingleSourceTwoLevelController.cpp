@@ -15,6 +15,10 @@ SingleSourceTwoLevelController::SingleSourceTwoLevelController( uint8_t id, int8
 {
 }
 
+bool SingleSourceTwoLevelController::isSwitch() const{
+  return _actor >= HEATING_ACTOR_COUNT;
+}
+
 bool SingleSourceTwoLevelController::working() const{
   if ( _sensor == -1 ){
     return false;
@@ -84,7 +88,7 @@ void SingleSourceTwoLevelController::printStatus( Stream& out ) const{
     return;
   }
   if ( _heat > 0 && g_actors[ _actor ]->isOpen() ){
-    out << F( "HEATING " );
+    out << ( isSwitch() ? F( "ON" ) : F( "HEATING " ) );
     if ( _heat < 1 ){
       out << '(' << int( _heat * 100 ) << F( "%)" );
     }

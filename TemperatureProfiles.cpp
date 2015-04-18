@@ -16,9 +16,9 @@
 // uint8 startTime: start time for the given value relative to midnight of the current day (using 24 hour system, 15 min resolution): hour * 10 + min / 15
 // uint8 value: temperature 10th degrees [0-25.5 degrees C] or value in 1/255 steps [0-255]
 
-// example: 1 3 2 255 50 210 127 200 160
+// example: setProfiles 1 2 255 50 210 127 200 160
 // 1 - 1 profile
-// 3 - 2 bytes for each entry + 1 byte header => first profile at addr 3
+// DO NOT INCLUDE IN SET COMMAND: 3 - 2 bytes for each entry + 1 byte header => first profile at addr 3
 // 2 - 2 packets in profile
 // 255 - everyday; min level heating on
 // 50 - start at 5:00
@@ -64,7 +64,7 @@ namespace TemperatureProfiles{
         if ( getDays( i ) & dow && startTime <= now && startTime >= next ){
           next = startTime;
           value = getValue( i );
-          activeFlag = ( startTime & 0x80 ) != 0;
+          activeFlag = (getDays( i ) & 0x80) != 0;
         }
       }
       hour = 23;
@@ -114,7 +114,7 @@ namespace TemperatureProfiles{
     g_eeprom.write( nbProfiles );
     int profileAddr = 1 + nbProfiles * 2;
     for( int id = 0; id < nbProfiles; ++id ){
-      g_eeprom.setPosition( 1 + (int)id * 2 );
+      g_eeprom.setPosition( 1 + id * 2 );
       g_eeprom.writeInt( profileAddr );
       g_eeprom.setPosition( profileAddr );
       int nbValues = s.parseInt();

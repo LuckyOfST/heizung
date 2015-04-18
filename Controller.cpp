@@ -200,6 +200,10 @@ unsigned long Controller::specialFunctions( float t ){
     return 1000ul * 10;
   }
   
+  if ( isSwitch() ){
+    return 0;
+  }
+
   // frost protection
   if ( t < 5.f ){
     heat( 1.f );
