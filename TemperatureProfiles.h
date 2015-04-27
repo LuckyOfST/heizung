@@ -9,6 +9,7 @@ namespace TemperatureProfiles{
   void setCurrentProfile( byte id );
   float value( byte day, byte hour, byte min );
   float value( byte day, byte hour, byte min, bool& activeFlag );
+  bool highresActiveFlag( byte day, byte hour, byte min );
   float temp( byte day, byte hour, byte min );
   float temp( byte day, byte hour, byte min, bool& activeFlag );
   void writeSettings( Stream& s );

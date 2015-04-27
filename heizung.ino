@@ -1,3 +1,4 @@
+#include "SwitchController.h"
 #include <DallasTemperature.h>
 #include <EEPROM.h>
 #include <Ethernet.h>

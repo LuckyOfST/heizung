@@ -3,6 +3,7 @@
 
 #include "Controller.h"
 #include "SingleSourceTwoLevelController.h"
+#include "SwitchController.h"
 #include "TemperatureProfiles.h"
 
 // elements = new XXXController( ... )
@@ -38,7 +39,7 @@ Controller* g_controller[ CONTROLLER_COUNT + 1 ] = {
   new SingleSourceTwoLevelController( 21, 7, 0 ),
   new SingleSourceTwoLevelController( 22, 0, 8 ),
   new SingleSourceTwoLevelController( 23, 3, 6 ),
-  new SingleSourceTwoLevelController( 24, -1, -1 ),
+  new SwitchController( 24, 24 ),
   new SingleSourceTwoLevelController( 25, -1, -1 ),
   0 // define 0 as last entry!
 };

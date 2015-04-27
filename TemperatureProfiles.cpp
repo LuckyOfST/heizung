@@ -12,20 +12,35 @@
 // profile data section: (for each profile)
 // uint8 nbValues: number of values (data packets) in current profile
 // nbValues times / for each data packet:
-// uint8 daysOfWeek: bit encoded days the value is valid: bit 0: monday .. bit 6: sunday; Bit 7: Min level heating activation
+// uint8 daysOfWeek: bit encoded days the value is valid: bit 0: monday .. bit 6: sunday; Bit 7: Min level heating activation / Switch activation
+
+// heating:
 // uint8 startTime: start time for the given value relative to midnight of the current day (using 24 hour system, 15 min resolution): hour * 10 + min / 15
 // uint8 value: temperature 10th degrees [0-25.5 degrees C] or value in 1/255 steps [0-255]
 
-// example: setProfiles 1 2 255 50 210 127 200 160
-// 1 - 1 profile
-// DO NOT INCLUDE IN SET COMMAND: 3 - 2 bytes for each entry + 1 byte header => first profile at addr 3
-// 2 - 2 packets in profile
+// switch:
+// uint8 startTime lb: ( hour*1800 + min*30 + sec/2 ) & 0xff
+// uint8 startTime hb: ( hour*1800 + min*30 + sec/2 ) / 256
+
+// example: setProfiles 2 2 255 50 210 127 200 160
+// 2 - 2 profiles
+// DO NOT INCLUDE IN SET COMMAND: 5, 12 - 2 bytes for each entry + 1 byte header => first profile at addr 5
+
+// 2 - 2 packets in profile for heating
 // 255 - everyday; min level heating on
 // 50 - start at 5:00
 // 210 - 21°
 // 127 - everyday; min level heating off
 // 200 - start at 20:00
 // 160 - 16°
+
+// 2 - 2 packets in profile for switch
+// 255 - everyday; switch on
+// 136 - lb of startTime 17:00 => 17 * 1800 + 0 * 30 + 0/2 = 30600 & 0xff = 136
+// 119 - hb of startTime
+// 127 - everyday; switch off
+// 144 - lb of startTime 18:00 => 18 * 1800 + 0 * 30 + 0/2 = 32400 & 0xff = 144
+// 126 - hb of startTime
 
 namespace TemperatureProfiles{
 
@@ -53,10 +68,41 @@ namespace TemperatureProfiles{
     return g_eeprom.at( idx * 3 + 2 ) / 255.f;
   }
     
+  uint16_t getStartTime16( int idx ){
+    return ((uint16_t)g_eeprom.at( idx * 3 + 1 )) | ((uint16_t)g_eeprom.at( idx * 3 + 2 )) << 8;
+  }
+
+  bool highresActiveFlag( byte day, byte hour, byte min, byte sec ){
+    bool found = false;
+    bool activeFlag = false;
+    int d = day;
+    do{
+      byte dow = 1 << d;
+      uint16_t now = ((uint16_t)hour) * 1800 + min * 30 + ( sec >> 1 );
+      uint16_t next = 0;
+      for ( int i = 0; i < g_nbValues; ++i ){
+        uint16_t startTime = getStartTime16( i );
+        if ( getDays( i ) & dow && startTime <= now && startTime >= next ){
+          next = startTime;
+          activeFlag = (getDays( i ) & 0x80) != 0;
+          found = true;
+        }
+      }
+      hour = 23;
+      min = 59;
+      --d;
+      if ( d == -1 ){
+        d = 6;
+      }
+    } while ( !found && d != day );
+    return activeFlag;
+  }
+  
   float value( byte day, byte hour, byte min, bool& activeFlag ){
     float value = -1.f;
+    int d = day;
     do{
-      byte dow = 1 << day;
+      byte dow = 1 << d;
       byte now  = hour * 10 + min / 15;
       byte next = 0;
       for( int i = 0; i < g_nbValues; ++i ){
@@ -69,8 +115,11 @@ namespace TemperatureProfiles{
       }
       hour = 23;
       min = 59;
-      ++day;
-    } while ( value == -1.f && day < 7 );
+      --d;
+      if ( d == -1 ){
+        d = 6;
+      }
+    } while ( value == -1.f && d != day );
     return value;
   }
   

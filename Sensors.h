@@ -26,7 +26,7 @@ struct Sensor{
   bool update( bool waitForValue = false );
   void sendStatus();
 
-  char* _name;
+  const char* _name;
   byte _bus;
   union{
     DeviceAddress _addr;

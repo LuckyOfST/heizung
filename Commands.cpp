@@ -248,7 +248,7 @@ void cmdSetTime( Stream& in, Stream& out ){
   if ( d > 0 ){
 #ifdef SUPPORT_NTP
     setSyncProvider( 0 );
-    setSyncInterval( 60 * 60 * 24 );
+    setSyncInterval( 60 * 60 * 6 );
 #endif
     setTime( h, m, s, d, mo, y );
     setStartTime();
@@ -257,7 +257,7 @@ void cmdSetTime( Stream& in, Stream& out ){
 #ifdef SUPPORT_NTP
   else{
     setSyncProvider( getNtpTime );
-    setSyncInterval( 60 * 60 * 24 );
+    setSyncInterval( 60 * 60 * 6 );
     getNtpTime();
     out << F( "Activated NTP: " );
   }

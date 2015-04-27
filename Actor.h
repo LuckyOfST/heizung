@@ -99,13 +99,13 @@ public:
 
   bool isSwitch() const{ return _id >= HEATING_ACTOR_COUNT; }
 
+  uint8_t _id;
   float _level;
   bool _open;
   bool _state;
   float _currentAmperage;
   unsigned long _switchOnTime;
   bool _waitingForPower;
-  uint8_t _id;
 #if defined( ACTORS_COMMTYPE_DIRECT )
   unsigned char _pin;
 #endif

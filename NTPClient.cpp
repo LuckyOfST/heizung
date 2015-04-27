@@ -74,7 +74,7 @@ time_t getNtpTime(){
         BEGINMSG F("Time was synchronized to NTP time ") << lz(te.Day) << F(".") << lz(te.Month) << F(".") << 1970 + te.Year << F(" ") << lz(te.Hour) << F(":") << lz(te.Minute) << F(":") << lz(te.Second) << F(".") ENDMSG
       }
       if ( !hasStartTime() ){
-        setSyncInterval( 60 * 60 * 24 );
+        setSyncInterval( 60 * 60 * 6 );
         setTime( t );
         setStartTime();
       }

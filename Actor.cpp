@@ -194,12 +194,12 @@ Actor::Actor( uint8_t id )
 ,_level( 0 )
 ,_open( false )
 ,_state( false )
-,_mode( Standard )
-,_currentAmperage( 0.f )
-,_waitingForPower( false )
+, _currentAmperage( 0.f )
+, _waitingForPower( false )
 #ifdef ACTORS_COMMTYPE_DIRECT
 ,_pin( pin )
 #endif // ACTORS_COMMTYPE_DIRECT
+, _mode( Standard )
 {
 }
 
@@ -266,6 +266,10 @@ void Actor::setMode( Mode mode ){
 }
   
 unsigned long Actor::tryWrite( bool on, unsigned long delay ){
+  if ( isSwitch() ){
+    applyActorState( on );
+    return delay;
+  }
   g_totalAmperage -= _currentAmperage;
   g_requiredAmperage -= _currentAmperage;
   if ( !on ){

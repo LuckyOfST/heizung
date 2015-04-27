@@ -52,7 +52,7 @@ void execWebserver(){
     int index = 0;
   
     // an http request ends with a blank line
-    boolean current_line_is_blank = true;
+    //boolean current_line_is_blank = true;
     
     DEBUG{ Serial << F("ethernet START") << endl; }
     while ( client.connected() ){
@@ -78,7 +78,7 @@ void execWebserver(){
         // Look for substring such as a request to get the root file
         if ( strstr( clientline, "GET /" ) != 0 ){
           // this time no space after the /, so a sub-file!
-          char* filename;
+          const char* filename;
           
           filename = clientline + 5; // look after the "GET /" (5 chars)
           // a little trick, look for the " HTTP/1.1" string and 
@@ -113,7 +113,7 @@ void execWebserver(){
             break;
           }
           
-          strlower( filename );          
+          //strlower( filename );          
           client << F("HTTP/1.1 200 OK") << endl << F("Content-Type: ");
           if ( strstr( filename, ".htm" ) != 0 ){
             client << F("text/html") << endl;
@@ -132,7 +132,7 @@ void execWebserver(){
           int pos = 0;
           while ( ( c = file.read() ) >= 0 ){
             char ch = (char)c;
-            if ( ch == (char)'§' ){
+            if ( ch == (char)'$' ){
               if ( pos > 0 ){
                 client.write( buffer, pos );
                 pos = 0;
@@ -142,7 +142,7 @@ void execWebserver(){
               case (char)'C':
                 {
                   file.read();
-                  const char* id = readLine( file );
+                  /*const char* id =*/ readLine( file );
                   client << F("not supported") << endl;
                 } break;
               case (char)'T':

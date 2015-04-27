@@ -42,10 +42,10 @@ public:
     ,_position( 0 )
   {}
   virtual int available(){ return _string.length() - _position; }
-  virtual int read(){ return _position < _string.length() ? _string[ _position++ ] : -1; }
-  virtual int peek(){ return _position < _string.length() ? _string[ _position ] : -1; }
+  virtual int read(){ return _position < (int)_string.length() ? _string[ _position++ ] : -1; }
+  virtual int peek(){ return _position < (int)_string.length() ? _string[ _position ] : -1; }
   virtual void flush(){};
-  virtual size_t write( uint8_t c ){ _string += (char)c; }
+  virtual size_t write( uint8_t c ){ _string += (char)c; return 1; }
   const String& str() const{ return _string; }
   const char* c_str() const{ return _string.c_str(); }
   void clear(){ _string = ""; }
@@ -87,6 +87,7 @@ extern void read( Stream& s, char* buffer, unsigned short bufferSize );
 extern EEPROMStream g_eeprom;;
 
 // BUFFER_LENGTH must be at least 48 bytes for NTPClient
+#undef BUFFER_LENGTH
 #define BUFFER_LENGTH 48
 extern unsigned char g_buffer[ BUFFER_LENGTH + 1 ];
 
