@@ -8,17 +8,18 @@ class SwitchController
 {
 public:
   SwitchController( uint8_t id, int8_t actor );
+  //virtual ~SwitchController();
 
-  virtual void setup( int i, int amount );
+  //virtual void setup( int i, int amount );
   virtual bool isSwitch() const;
   virtual unsigned long doJob();
 
   // T measured by sensor(s) used to compare against the target T
-  virtual float getMeasuredT() const;
+  //virtual float getMeasuredT() const;
 
-  virtual void writeSettings( Stream& s );
+  //virtual void writeSettings( Stream& s );
 
-  virtual void readSettings( Stream& s );
+  //virtual void readSettings( Stream& s );
 
   virtual bool working() const;
 
@@ -39,3 +40,4 @@ private:
 };
 
 #endif // SwitchController_h
+

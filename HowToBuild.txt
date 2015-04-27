@@ -1,0 +1,12 @@
+Recommended development environment:
+
+Visual Studio 2013 community edition (or similar)
+Visual Micro add-in (http://www.visualmicro.com/)
+Arduino IDE 1.6.3
+
+1) Install Visual Studio
+2) Download & install the arduino IDE (www.arduino.cc)
+3) Donwload & install the Visual Micro add-in
+4) Install the arduino libraries from the folder ArduinoLibrary into the folder "libraries" of the arduino installation or into the according user folder by unpacking the archives.
+5) Open Visual Studio and load the project
+

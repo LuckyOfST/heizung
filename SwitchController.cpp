@@ -8,10 +8,13 @@
 
 SwitchController::SwitchController( uint8_t id, int8_t actor )
   :Controller( id )
-  , _actor( actor )
-  , _heat( 0.f )
+  ,_actor( actor )
+  ,_heat( 0.f )
 {
 }
+
+//SwitchController::~SwitchController(){
+//}
 
 bool SwitchController::isSwitch() const{
   return _actor >= HEATING_ACTOR_COUNT;
@@ -43,7 +46,7 @@ float SwitchController::getLevel( bool& activeFlag ) const{
   }
   if ( isSwitch() ){
     activeFlag = false;
-    return TemperatureProfiles::highresActiveFlag( day, hour( t ), minute( t ) ) ? 1.f : 0.f;
+    return TemperatureProfiles::highresActiveFlag( day, hour( t ), minute( t ), second( t ) ) ? 1.f : 0.f;
   }
   return TemperatureProfiles::value( day, hour( t ), minute( t ), activeFlag );
 }
