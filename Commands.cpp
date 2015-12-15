@@ -9,7 +9,21 @@
 #include "TemperatureProfiles.h"
 #include "Tools.h"
 
-extern void (*delayedCmd)();
+#ifdef SUPPORT_FTP
+#include "Network.h"
+
+void printIP( const IPAddress& ip, Stream& out ){
+  out << ip[ 0 ] << '.' << ip[ 1 ] << '.' << ip[ 2 ] << '.' << ip[ 3 ];
+}
+
+void getIP( Stream& in, IPAddress& ip ){
+  for ( int i = 0; i < 4; ++i ){
+    ip[ i ] = (uint8_t)in.parseInt();
+  }
+}
+#endif
+
+extern void( *delayedCmd )();
 
 void cmdHelp( Stream& in, Stream& out ){
   out << F("Supported Commands:") << endl;
@@ -87,8 +101,14 @@ void cmdStatus( Stream& in, Stream& out ){
   out << F("    ");
   //g_tempProfile.writeSettings( out );
   TemperatureProfiles::writeSettings( out );
+  TemperatureProfiles::printProfiles( out );
   out << F("  CURRENT AMPERAGE: ") << Actor::getCurrentUsedAmperage() << endl;
   out << F("  FREE RAM: ") << FreeRam() << F(" bytes") << endl;
+#ifdef SUPPORT_FTP
+  out << F( "  FTP SERVER: " );
+  printIP( ftpServer, out );
+#endif
+  out << endl;
   out << F("End status") << endl;
 }
 
@@ -285,6 +305,52 @@ void cmdResetI2C( Stream& in, Stream& out ){
 }
 #endif
 
+#ifdef SUPPORT_FTP
+void cmdSetFtpServer( Stream& in, Stream& out ){
+  getIP( in, ftpServer );
+  out << F( "FTP server set to " );
+  printIP( ftpServer, out );
+  out << endl;
+}
+#endif
+
+void cmdShowProfiles( Stream& in, Stream& out ){
+  TemperatureProfiles::printProfiles( out );
+}
+
+void cmdResetProfile( Stream& in, Stream& out ){
+  uint8_t pid = in.parseInt();
+  bool heating = in.parseInt();
+  TemperatureProfiles::resetProfile( pid, heating );
+  TemperatureProfiles::printProfiles( out );
+}
+
+void cmdAddProfile( Stream& in, Stream& out ){
+  bool heating = in.parseInt();
+  TemperatureProfiles::addProfile( heating );
+  TemperatureProfiles::printProfiles( out );
+}
+
+void cmdAddEntry( Stream& in, Stream& out ){
+  uint8_t pid = in.parseInt();
+  TemperatureProfiles::addEntry( pid, in );
+  TemperatureProfiles::printProfile( pid, out );
+}
+
+void cmdSetEntry( Stream& in, Stream& out ){
+  uint8_t pid = in.parseInt();
+  uint8_t eid = in.parseInt();
+  TemperatureProfiles::setEntry( pid, eid, in );
+  TemperatureProfiles::printProfile( pid, out );
+}
+
+void cmdRemoveEntry( Stream& in, Stream& out ){
+  uint8_t pid = in.parseInt();
+  uint8_t eid = in.parseInt();
+  TemperatureProfiles::removeEntry( pid, eid );
+  TemperatureProfiles::printProfile( pid, out );
+}
+
 Command commands[] = {
   cmdHelp,
   cmdDetect,
@@ -309,35 +375,53 @@ Command commands[] = {
 #if defined( ACTORS_COMMTYPE_CRYSTAL64IO )
   cmdResetI2C,
 #endif
-  cmdTestActors
+  cmdTestActors,
+#ifdef SUPPORT_FTP
+  cmdSetFtpServer,
+#endif
+  cmdShowProfiles,
+  cmdResetProfile,
+  cmdAddProfile,
+  cmdAddEntry,
+  cmdSetEntry,
+  cmdRemoveEntry
 };
 
 const char commandDescs[] PROGMEM =
-  "help\0\0" "Shows this help info.\0"
-  "detect\0\0" "Detect all missing and new devices (sensors).\0"
-  "errors\0\0" "Show the error count for all sensors.\0"
-  "reseterrors\0\0" "Resets the error count for all sensors.\0"
-  "status\0\0" "Shows the current temperatures of all sensors.\0"
-  "set\0 CID T\0" "Sets the target temperature of controller CID to T C. T=0 activates profile mode.\0"
-  "setMinLevel\0 CID L\0" "Sets the minim level of controller CID (or 'all') to L [0..1].\0"
-  "resetControllerTemperatures\0\0" "Resets the target temperature of all controllers to 21 C.\0"
-  "resetControllerProfiles\0\0" "Resets all controller profiles to 0 (no profile).\0"
-  "setProfile\0 CID P\0" "Sets the profile for controller CID to profile nr. P (0 is the first profile). Use 'set CID 0' to activate profile mode.\0"
-  "get\0 CID\0" "Shows the current target temperature of controller CID.\0"
-  "getMinLevels\0\0" "Shows the minimum levels of all controllers.\0"
-  "getProfiles\0\0" "Shows the profiles settings.\0"
-  "setProfiles\0 XXX\0" "Sets the profiles (see documentation for format details).\0"
-  "getTemp\0 PID DOW H M\0" "Gets the temperature set in profile PID for Day-Of-Week (0-6) DOW, Time H:M.\0"
-  "forceActor\0 AID X\0" "forces the actor AID (or 'all') to bo on (X=1) or off (X=0) or to work in standard mode (X=-1).\0"
-  "forceController\0 CID X\0" "forces the controller CID (or 'all') to level X [0..1] or to work in standard mode (X=-1).\0"
-  "setTime\0 DD MM YY H M S\0" "Sets the time to day (DD), month (MM), year (YY); hour (H) minute (M) second (S).\0"
-  "getTime\0\0" "Shows the current time.\0"
-  "requestTemp\0\0" "Updates all sensors and sends their values via UDP (port 12888).\0"
+"help\0\0" "Shows this help info.\0"
+"detect\0\0" "Detect all missing and new devices (sensors).\0"
+"errors\0\0" "Show the error count for all sensors.\0"
+"reseterrors\0\0" "Resets the error count for all sensors.\0"
+"status\0\0" "Shows the current temperatures of all sensors.\0"
+"set\0 CID T\0" "Sets the target temperature of controller CID to T C. T=0 activates profile mode.\0"
+"setMinLevel\0 CID L\0" "Sets the minim level of controller CID (or 'all') to L [0..1].\0"
+"resetControllerTemperatures\0\0" "Resets the target temperature of all controllers to 21 C.\0"
+"resetControllerProfiles\0\0" "Resets all controller profiles to 0 (no profile).\0"
+"setProfile\0 CID P\0" "Sets the profile for controller CID to profile nr. P (0 is the first profile). Use 'set CID 0' to activate profile mode.\0"
+"get\0 CID\0" "Shows the current target temperature of controller CID.\0"
+"getMinLevels\0\0" "Shows the minimum levels of all controllers.\0"
+"getProfiles\0\0" "Shows the profiles settings.\0"
+"setProfiles\0 XXX\0" "Sets the profiles (see documentation for format details).\0"
+"getTemp\0 PID DOW H M\0" "Gets the temperature set in profile PID for Day-Of-Week (0-6) DOW, Time H:M.\0"
+"forceActor\0 AID X\0" "forces the actor AID (or 'all') to bo on (X=1) or off (X=0) or to work in standard mode (X=-1).\0"
+"forceController\0 CID X\0" "forces the controller CID (or 'all') to level X [0..1] or to work in standard mode (X=-1).\0"
+"setTime\0 DD MM YY H M S\0" "Sets the time to day (DD), month (MM), year (YY); hour (H) minute (M) second (S).\0"
+"getTime\0\0" "Shows the current time.\0"
+"requestTemp\0\0" "Updates all sensors and sends their values via UDP (port 12888).\0"
 #if defined( ACTORS_COMMTYPE_CRYSTAL64IO )
-  "resetI2C\0\0" "Reset the I2C bus.\0"
+"resetI2C\0\0" "Reset the I2C bus.\0"
 #endif
-  "testActors\0\0" "Test all actors by force them on/off.\0"
-  ;
+"testActors\0\0" "Test all actors by force them on/off.\0"
+#ifdef SUPPORT_FTP
+"setFtpServer\0 X.X.X.X\0" "Sets the ftp server address where the temperature protocol is stored.\0"
+#endif
+"showProfiles\0\0" "Shows all profiles.\0"
+"resetProfile\0 PID HS\0" "Resets the profile PID; profile mode is heating (HS=0) or switch (HS=1)\0"
+"addProfile\0 HS\0" "Adds a new profile in mode heating (HS=0) or switch (HS=1)\0"
+"addEntry\0 PID XXXX\0" "Adds a new entry to profiel PID.\0"
+"setEntry\0 PID EID XXXX\0" "Sets the values of entry EID of profile PID.\0"
+"removeEntry\0 PID EID\0" "Removes the entry EID of profile PID.\0"
+;
 
 bool commandText( Stream& out, bool reset ){
   static const char* t = commandDescs;

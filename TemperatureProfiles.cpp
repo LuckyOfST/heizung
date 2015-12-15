@@ -10,7 +10,7 @@
 // uint16 profileAddr: initial addr of profileData section (=1+2*nbProfiles); incremented by size of profile data for each profile
 //
 // profile data section: (for each profile)
-// uint8 nbValues: number of values (data packets) in current profile
+// uint8 nbValues: bit 0-6 number of values (data packets) in current profile; bit 7: 0=heating profile, 1=switch profile
 // nbValues times / for each data packet:
 // uint8 daysOfWeek: bit encoded days the value is valid: bit 0: monday .. bit 6: sunday; Bit 7: Min level heating activation / Switch activation
 
@@ -80,7 +80,7 @@ namespace TemperatureProfiles{
       byte dow = 1 << d;
       uint16_t now = ((uint16_t)hour) * 1800 + min * 30 + ( sec >> 1 );
       uint16_t next = 0;
-      for ( int i = 0; i < g_nbValues; ++i ){
+      for ( int i = 0; i < g_nbValues&0x7f; ++i ){
         uint16_t startTime = getStartTime16( i );
         if ( getDays( i ) & dow && startTime <= now && startTime >= next ){
           next = startTime;
@@ -105,7 +105,7 @@ namespace TemperatureProfiles{
       byte dow = 1 << d;
       byte now  = hour * 10 + min / 15;
       byte next = 0;
-      for( int i = 0; i < g_nbValues; ++i ){
+      for( int i = 0; i < g_nbValues&0x7f; ++i ){
         byte startTime = getStartTime( i );
         if ( getDays( i ) & dow && startTime <= now && startTime >= next ){
           next = startTime;
@@ -147,8 +147,8 @@ namespace TemperatureProfiles{
     s << nbProfiles;
     for( int id = 0; id < nbProfiles; ++id ){
       setCurrentProfile( id );
-      s << ' ' << g_nbValues;
-      for( int i = 0; i < g_nbValues; ++i ){
+      s << ' ' << (g_nbValues&0x7f);
+      for( int i = 0; i < g_nbValues&0x7f; ++i ){
         s << ' ' << g_eeprom.at( i * 3 + 0 ) << ' ' << g_eeprom.at( i * 3 + 1 ) << ' ' << g_eeprom.at( i * 3 + 2 );
       }
     }
@@ -177,7 +177,276 @@ namespace TemperatureProfiles{
     }
   }
   
-  byte g_nbValues;
+  class Profile{
+  public:
+    Profile()
+      : _id( 0 )
+      , _nbEntries( 0 )
+      , _heatingProfile( true )
+      , _entries( 0 )
+    {
+    }
+    ~Profile(){
+      delete[] _entries;
+    }
+    void initialize( bool heatingProfile, uint8_t nbEntries = 0 ){
+      _heatingProfile = heatingProfile;
+      _nbEntries = nbEntries;
+      delete[] _entries;
+      _entries = new uint8_t[ nbEntries * 3 ];
+    }
+    void readFromEEPROM( uint8_t id ){
+      _id = id;
+      setCurrentProfile( _id );
+      uint8_t nbEntries = g_nbValues;
+      initialize( !(nbEntries & 0x80), nbEntries & 0x7f );
+      nbEntries *= 3;
+      for ( int i = 0; i < nbEntries; ++i ){
+        _entries[ i ] = g_eeprom.at( i );
+      }
+    }
+    int addEntry(){
+      uint8_t* entries = new uint8_t[ _nbEntries * 3 + 3 ];
+      memcpy( entries, _entries, _nbEntries * 3 );
+      entries[ _nbEntries * 3 + 0 ] = 0;
+      entries[ _nbEntries * 3 + 1 ] = 0;
+      entries[ _nbEntries * 3 + 2 ] = 0;
+      delete[] _entries;
+      _entries = entries;
+      ++_nbEntries;
+      return _nbEntries - 1;
+    }
+    void removeEntry( uint8_t i ){
+      if ( i >= 0 && i < _nbEntries ){
+        memcpy( _entries + i * 3, _entries + i * 3 + 3, ( _nbEntries - i - 1 ) * 3 );
+        --_nbEntries;
+      }
+    }
+    void print( Stream& s ){
+      s << F("Profile ") << _id << F(": ");
+      if ( !_nbEntries ){
+        s << F( "empty" ) << endl;
+        return;
+      }
+      if ( _heatingProfile ){
+        s << F( "heating" ) << endl;
+        for ( int i = 0; i < _nbEntries; ++i ){
+          s << i << F( ": " );
+          bool on = printDOW( i, s );
+          uint16_t startTime = _entries[ i * 3 + 1 ];
+          uint8_t hour = startTime / 10;
+          uint8_t min = (startTime - hour * 10) * 15;
+          s << lz( hour ) << ':' << lz( min ) << F(" with ");
+          float value = _entries[ i * 3 + 2 ] / 10.;
+          s << value << F( " C" );
+          if ( on ){
+            s << F( " (min level active)" );
+          }
+          s << endl;
+        }
+      } else {
+        s << F( "switch" ) << endl;
+        for ( int i = 0; i < _nbEntries; ++i ){
+          s << i << F( ": " );
+          bool on = printDOW( i, s );
+          uint16_t startTime = _entries[ i * 3 + 1 ] + ( _entries[ i * 3 + 2 ] << 8 );
+          uint8_t hour = startTime / 1800;
+          uint8_t min = (startTime - hour * 1800) / 30;
+          uint8_t sec = (startTime % 30) * 2;
+          s << lz( hour ) << ':' << lz( min ) << ':' << lz( sec ) << ' ' << (on ? F( "on" ) : F( "off" )) << endl;
+        }
+      }
+    }
+    bool isHeatingProfile() const{ return _heatingProfile; }
+    void setHeatingEntry( uint8_t eid, uint8_t dow, uint8_t h, uint8_t m, float value, bool minActive ){
+      if ( minActive ){
+        dow |= 0x80;
+      }
+      _entries[ eid * 3 + 0 ] = dow;
+      _entries[ eid * 3 + 1 ] = h * 10 + (m / 15);
+      _entries[ eid * 3 + 2 ] = value * 10;
+    }
+    void setSwitchEntry( uint8_t eid, uint8_t dow, uint8_t h, uint8_t m, uint8_t s, bool on ){
+      if ( on ){
+        dow |= 0x80;
+      }
+      _entries[ eid * 3 + 0 ] = dow;
+      uint16_t time = h * 1800 + m * 30 + (s >> 1);
+      _entries[ eid * 3 + 1 ] = time & 0xff;
+      _entries[ eid * 3 + 2 ] = time >> 8;
+    }
+    void takeEntries(){
+      _nbEntries = 0;
+      _entries = 0;
+    }
+  private:
+    void writeToEEPROM(){
+      //setCurrentProfile( _id );
+      //g_eeprom.write( _heatingProfile ? _nbEntries : ( _nbEntries | 0x80 ) );
+      g_eeprom.write( _nbEntries );
+      for ( int i = 0; i < _nbEntries * 3; ++i ){
+        g_eeprom.write( _entries[ i ] );
+      }
+    }
+    bool printDOW( uint8_t i, Stream& s ){
+      uint8_t daysOfWeek = _entries[ i * 3 ];
+      char days[] = "mo di mi do fr sa so";
+      for ( int j = 0; j < 7; ++j ){
+        if ( !(daysOfWeek&(1 << j)) ){
+          days[ j * 3 + 0 ] = '-';
+          days[ j * 3 + 1 ] = '-';
+        }
+      }
+      s << days << F( " from " );
+      return daysOfWeek & 0x80;
+    }
+    uint8_t _id;
+    bool _heatingProfile;
+    uint8_t _nbEntries;
+    uint8_t* _entries;
+
+    friend class Profiles;
+  };
+
+  class Profiles{
+  public:
+    Profiles()
+      : _nbProfiles( 0 )
+      , _profiles( 0 )
+    {
+    }
+    ~Profiles(){
+      delete[] _profiles;
+    }
+    void readFromEEPROM(){
+      delete[] _profiles;
+      _nbProfiles = getNbProfiles();
+      _profiles = new Profile[ _nbProfiles ];
+      for ( int i = 0; i < _nbProfiles; ++i ){
+        _profiles[ i ].readFromEEPROM( i );
+      }
+    }
+    void writeToEEPROM(){
+      g_eeprom.setCurrentBaseAddr( EEPROM_PROFILES_BASE );
+      g_eeprom.write( _nbProfiles );
+      int profileAddr = 1 + int(_nbProfiles) * 2;
+      for( int id = 0; id < _nbProfiles; ++id ){
+        g_eeprom.setPosition( 1 + id * 2 );
+        g_eeprom.writeInt( profileAddr );
+        g_eeprom.setPosition( profileAddr );
+        _profiles[ id ].writeToEEPROM();
+        profileAddr = g_eeprom.getPosition();
+      }
+    }
+    void resetProfile( uint8_t id, bool heating ){
+      if ( id >= 0 && id < _nbProfiles ){
+        _profiles[ id ].initialize( heating );
+      }
+    }
+    void addProfile( bool heating ){
+      Profile* profiles = new Profile[ _nbProfiles + 1 ];
+      memcpy( profiles, _profiles, _nbProfiles * sizeof( Profile ) );
+      profiles[ _nbProfiles ].initialize( heating );
+      for ( int i = 0; i < _nbProfiles; ++i ){
+        _profiles[ i ].takeEntries();
+      }
+      delete[] _profiles;
+      _profiles = profiles;
+      ++_nbProfiles;
+    }
+    void removeEntry( uint8_t profile, uint8_t entry ){
+      if ( profile >= 0 && profile < _nbProfiles ){
+        _profiles[ profile ].removeEntry( entry );
+      }
+    }
+    void setEntry( uint8_t profile, uint8_t entry, Stream& in ){
+      if ( profile >= 0 && profile < _nbProfiles ){
+        while ( isWhitespace( in.peek() ) ){
+          in.read();
+        }
+        char daysOfWeek[ 7 ];
+        in.readBytes( daysOfWeek, 7 );
+        uint8_t dow = 0;
+        for ( int i = 0; i < 7; ++i ){
+          if ( daysOfWeek[ i ] != '-' ){
+            dow |= 1 << i;
+          }
+        }
+        uint8_t h = in.parseInt();
+        uint8_t m = in.parseInt();
+        if ( _profiles[ profile ].isHeatingProfile() ){
+          float value = in.parseFloat();
+          int on = in.parseInt();
+          _profiles[ profile ].setHeatingEntry( entry, dow, h, m, value, on );
+        } else {
+          uint8_t s = in.parseInt();
+          int on = in.parseInt();
+          _profiles[ profile ].setSwitchEntry( entry, dow, h, m, s, on );
+        }
+      }
+
+    }
+    void addEntry( uint8_t profile, Stream& in ){
+      if ( profile >= 0 && profile < _nbProfiles ){
+        uint8_t entry = _profiles[ profile ].addEntry();
+        setEntry( profile, entry, in );
+      }
+    }
+  private:
+    uint8_t _nbProfiles;
+    Profile* _profiles;
+  };
+
+  void printProfile( uint8_t id, Stream& s ){
+    Profile p;
+    p.readFromEEPROM( id );
+    p.print( s );
+  }
+
+  void printProfiles( Stream& s ){
+    uint8_t nbProfiles = getNbProfiles();
+    s << nbProfiles << F( " profiles" ) << endl;
+    for ( uint8_t id = 0; id < nbProfiles; ++id ){
+      printProfile( id, s );
+    }
+  }
+
+  void resetProfile( uint8_t id, bool heating ){
+    Profiles profiles;
+    profiles.readFromEEPROM();
+    profiles.resetProfile( id, heating );
+    profiles.writeToEEPROM();
+  }
+
+  void addProfile( bool heating ){
+    Profiles profiles;
+    profiles.readFromEEPROM();
+    profiles.addProfile( heating );
+    profiles.writeToEEPROM();
+  }
+
+  void setEntry( uint8_t profile, uint8_t entry, Stream& in ){
+    Profiles profiles;
+    profiles.readFromEEPROM();
+    profiles.setEntry( profile, entry, in );
+    profiles.writeToEEPROM();
+  }
+
+  void addEntry( uint8_t profile, Stream& in ){
+    Profiles profiles;
+    profiles.readFromEEPROM();
+    profiles.addEntry( profile, in );
+    profiles.writeToEEPROM();
+  }
+
+  void removeEntry( uint8_t profile, uint8_t entry ){
+    Profiles profiles;
+    profiles.readFromEEPROM();
+    profiles.removeEntry( profile, entry );
+    profiles.writeToEEPROM();
+  }
+
+  uint8_t g_nbValues;
 
 } // namespace TemperatureProfiles
 

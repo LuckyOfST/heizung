@@ -14,7 +14,14 @@ namespace TemperatureProfiles{
   float temp( byte day, byte hour, byte min, bool& activeFlag );
   void writeSettings( Stream& s );
   void readSettings( Stream& s );
-  
+  void printProfiles( Stream& s );
+  void printProfile( uint8_t id, Stream& s );
+  void resetProfile( uint8_t id, bool heating );
+  void addProfile( bool heating );
+  void setEntry( uint8_t profile, uint8_t entry, Stream& in );
+  void addEntry( uint8_t profile, Stream& in );
+  void removeEntry( uint8_t profile, uint8_t entry );
+
   extern byte g_nbValues;
 
 } // namespace TemperatureProfiles
