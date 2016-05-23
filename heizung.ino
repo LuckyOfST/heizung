@@ -1,3 +1,4 @@
+#include "avr/wdt.h"
 #include "SwitchController.h"
 #include <DallasTemperature.h>
 #include <EEPROM.h>
@@ -21,6 +22,7 @@
 #include "TemperatureProfiles.h"
 #include "TemperatureUploader.h"
 #include "Tools.h"
+#include "Watchdog.h"
 #include "Webserver.h"
 
 #ifdef ACTORS_COMMTYPE_CRYSTAL64IO
@@ -36,6 +38,9 @@
 void (*delayedCmd)() =0;
 
 void setup(){
+  // disable any watchdog as soon as possible...
+  wdt_disable();
+
   Serial.begin( 19200 );
   Serial << F( "--- SETUP STARTING ---" ) << endl;
 #ifdef SUPPORT_eBus
@@ -79,6 +84,8 @@ void interpret( Stream& in, Stream& out ){
 void loop(){
   digitalWrite( 13, HIGH );
 
+  startWatchdog();
+
   DEBUG{ Serial << F("FreeRam: ") << FreeRam() << endl; }
 
 #ifdef SUPPORT_Webserver
@@ -103,6 +110,8 @@ void loop(){
   unsigned long minDelay = Job::executeJobs( 50 );
   
   Actor::applyActorsStates();
+
+  stopWatchdog();
 
   digitalWrite( 13, LOW );
 #ifndef SUPPORT_eBus

@@ -79,6 +79,8 @@ public:
 
   virtual void sendStatus() const;
 
+  virtual void printActors( Stream& out ) const;
+
 protected:
   // level: 0=off; 1=on (100%)
   virtual void heat( float level ) =0;

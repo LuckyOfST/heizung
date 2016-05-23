@@ -220,7 +220,7 @@ void Actor::setup( int i, int amount ){
   
 void Actor::setLevel( float level ){
   if ( isSwitch() ){
-    applyActorState( _mode == Standard ? (level > 0.f) : (_mode == ForceOn) );
+    applyActorState( ( _mode & 1 != 0) ? (level > 0.f) : (_mode == ForceOn) );
     return;
   }
   if ( level < 0.f ){
@@ -244,7 +244,7 @@ unsigned long Actor::doJob(){
     }
     _open = !_open;
   }
-  if ( _mode == Standard ){
+  if ( _mode & 1 != 0 ){ // Standard mode or forced standard mode
     _open = !_open;
     unsigned long delay = (unsigned long)( ACTOR_CYCLE_INTERVAL * ( _open ? _level : ( 1.f - _level ) ) * 1000.f );
     if ( delay ){
@@ -264,7 +264,15 @@ void Actor::setMode( Mode mode ){
     setLevel( _level );
   }
 }
-  
+
+void Actor::forceStandardMode( bool forced ){
+  if ( forced ){
+    _mode = (Mode)( _mode | 1 );
+  } else if ( _mode != Standard ){
+    _mode = (Mode)( _mode & ~1 );
+  }
+}
+
 unsigned long Actor::tryWrite( bool on, unsigned long delay ){
   if ( isSwitch() ){
     applyActorState( on );

@@ -235,6 +235,9 @@ Controller* Controller::find( const char* name ){
   return 0;
 }
 
+void Controller::printActors( Stream& out ) const{
+}
+
 void setupController(){
   Serial << F( "Initializing controller." ) << endl;
   Job::setupJobs( (Job**)g_controller );

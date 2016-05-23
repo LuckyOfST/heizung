@@ -51,9 +51,16 @@ unsigned long SingleSourceTwoLevelController::doJob(){
 #endif
   
   // execute special functions (like weekly water flow in heating system)
+  if ( _actor != -1 ){
+    // special functions do have special purposes, mostly for system security reasons. Therefore they have a higher priority than the forced modes set by the user...
+    g_actors[ _actor ]->forceStandardMode( true );
+  }
   unsigned long dt = specialFunctions( _currentT );
   if ( dt > 0 ){
     return dt;
+  }
+  if ( _actor != -1 ){
+    g_actors[ _actor ]->forceStandardMode( false );
   }
 
   bool minLevelActive = true;
@@ -100,5 +107,11 @@ void SingleSourceTwoLevelController::sendStatus() const{
   BEGINMSG "C " << getName() << ' ' << getProfileID() << ' ' << _FLOAT( getMeasuredT(), 1 ) << ' ' << _FLOAT( getT(), 1 ) << ' ' << _FLOAT( _heat, 2 ) << ' ' << _FLOAT( getMinimumLevel(), 2 ) << ' ' << _FLOAT( getForcedLevel(), 2 ) ENDMSG;
   if ( _actor != -1 ){
     g_actors[ _actor ]->sendStatus();
+  }
+}
+
+void SingleSourceTwoLevelController::printActors( Stream& out ) const{
+  if ( _actor != -1 ){
+    out << F( "(-->" ) << g_actors[ _actor ]->getName() << ')';
   }
 }

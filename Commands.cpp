@@ -53,7 +53,7 @@ void cmdResetErrors( Stream& in, Stream& out ){
   out << F("Error counters resetted.") << endl;
 }
 
-void cmdStatus( Stream& in, Stream& out ){
+void status( Stream& in, Stream& out, bool includeActors ){
   writeTime( out );
   out << F( "Running since " );
   writeTime( out, g_startTime );
@@ -87,10 +87,13 @@ void cmdStatus( Stream& in, Stream& out ){
       out << F("forced to level ") << g_controller[ i ]->getForcedLevel() << ". ";
     }
     g_controller[ i ]->printStatus( out );
+    if ( includeActors ){
+      g_controller[ i ]->printActors( out );
+    }
     out << endl;
   }
-  out << F( "  SWITCHES:" ) << endl;
-  for ( unsigned short i = HEATING_ACTOR_COUNT; i < ACTOR_COUNT; ++i ){
+  out << ( includeActors ? F( "  ACTORS:" ) : F( "  SWITCHES:" ) ) << endl;
+  for ( unsigned short i = includeActors ? 0 : HEATING_ACTOR_COUNT; i < ACTOR_COUNT; ++i ){
     out << F( "    '" ) << g_actors[ i ]->getName() << F( "' " );
     if ( g_actors[ i ]->getMode() != Actor::Standard ){
       out << F( "FORCED " );
@@ -110,6 +113,14 @@ void cmdStatus( Stream& in, Stream& out ){
 #endif
   out << endl;
   out << F("End status") << endl;
+}
+
+void cmdStatus( Stream& in, Stream& out ){
+  status( in, out, false );
+}
+
+void cmdFullStatus( Stream& in, Stream& out ){
+  status( in, out, true );
 }
 
 void cmdSet( Stream& in, Stream& out ){
@@ -357,6 +368,7 @@ Command commands[] = {
   cmdErrors,
   cmdResetErrors,
   cmdStatus,
+  cmdFullStatus,
   cmdSet,
   cmdSetMinLevel,
   cmdResetControllerTemperatures,
@@ -392,7 +404,8 @@ const char commandDescs[] PROGMEM =
 "detect\0\0" "Detect all missing and new devices (sensors).\0"
 "errors\0\0" "Show the error count for all sensors.\0"
 "reseterrors\0\0" "Resets the error count for all sensors.\0"
-"status\0\0" "Shows the current temperatures of all sensors.\0"
+"status\0\0" "Shows the current temperatures of all sensors and working modes of all controllers.\0"
+"fullStatus\0\0" "Like status plus current mode of all actors.\0"
 "set\0 CID T\0" "Sets the target temperature of controller CID to T C. T=0 activates profile mode.\0"
 "setMinLevel\0 CID L\0" "Sets the minim level of controller CID (or 'all') to L [0..1].\0"
 "resetControllerTemperatures\0\0" "Resets the target temperature of all controllers to 21 C.\0"

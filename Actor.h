@@ -57,7 +57,7 @@ class Actor
 :public Job
 {
 public:
-  typedef enum{ Standard, ForceOff, ForceOn } Mode;
+  typedef enum{ Standard=1, ForceOff=2, ForceOn=4 } Mode;
 
   static Actor* findActor( const char* name );
   static float getCurrentUsedAmperage();
@@ -98,7 +98,11 @@ public:
   void sendStatus() const;
 
   bool isSwitch() const{ return _id >= HEATING_ACTOR_COUNT; }
-
+  
+  // If the standard mod is forced the mode set using setMode(...) is ignored and the standard mode is used.
+  // This is usefull while executing special (mostly security) functions in the controllers.
+  void forceStandardMode( bool forced );
+  
   uint8_t _id;
   float _level;
   bool _open;

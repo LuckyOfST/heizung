@@ -21,6 +21,8 @@ public:
 
   virtual void sendStatus() const;
 
+  virtual void printActors( Stream& out ) const;
+
 protected:
   virtual void heat( float level );
   

@@ -27,6 +27,8 @@ public:
 
   virtual void sendStatus() const;
 
+  virtual void printActors( Stream& out ) const;
+
 protected:
   float getLevel( bool& activeFlag ) const;
   
