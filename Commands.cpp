@@ -73,6 +73,9 @@ void status( Stream& in, Stream& out, bool includeActors ){
   }
   out << F("  CONTROLLERS:") << endl;
   for( unsigned short i = 0; i < CONTROLLER_COUNT; ++i ){
+    if ( g_controller[ i ]->isSwitch() ){
+      continue;
+    }
     out << F("    '") << g_controller[ i ]->getName() << F("' ");
     if ( !g_controller[ i ]->working() ){
       out << F("[OUT OF FUNCTION] ");
@@ -224,7 +227,7 @@ void cmdForceActor( Stream& in, Stream& out ){
     m = in.parseInt() + 1;
     for( int i = 0; i < ACTOR_COUNT; ++i ){
       if ( !g_actors[ i ]->isSwitch() ){
-        g_actors[ i ]->setMode( (Actor::Mode)m );
+        g_actors[ i ]->setMode( (Actor::Mode)( 1 << m ) );
       }
     }
   } else {
@@ -234,7 +237,7 @@ void cmdForceActor( Stream& in, Stream& out ){
       return;
     }
     m = in.parseInt() + 1;
-    a->setMode( (Actor::Mode)m );
+    a->setMode( (Actor::Mode)( 1 << m ) );
   }
   switch ( m ){
   case 0:
