@@ -140,7 +140,9 @@ void cmdSetMinLevel( Stream& in, Stream& out ){
   float l = in.parseFloat();
   if ( !strcmp( name, "all" ) ){
     for( int i = 0; i < CONTROLLER_COUNT; ++i ){
-      g_controller[ i ]->setMinimumLevel( l );
+      if ( !g_controller[ i ]->isSwitch() ){
+        g_controller[ i ]->setMinimumLevel( l );
+      }
     }
     out << F("Changed all controller minimum levels to ") << _FLOAT( l, 2 ) << '.' << endl;
   } else {
@@ -221,7 +223,9 @@ void cmdForceActor( Stream& in, Stream& out ){
   if ( !strcmp( name, "all" ) ){
     m = in.parseInt() + 1;
     for( int i = 0; i < ACTOR_COUNT; ++i ){
-      g_actors[ i ]->setMode( (Actor::Mode)m );
+      if ( !g_actors[ i ]->isSwitch() ){
+        g_actors[ i ]->setMode( (Actor::Mode)m );
+      }
     }
   } else {
     Actor* a = Actor::findActor( name );
@@ -250,7 +254,9 @@ void cmdForceController( Stream& in, Stream& out ){
   float level = in.parseFloat();
   if ( !strcmp( name, "all" ) ){
     for( unsigned short i = 0; i < CONTROLLER_COUNT; ++i ){
-      g_controller[ i ]->setForcedLevel( level );
+      if ( !g_controller[ i ]->isSwitch() ){
+        g_controller[ i ]->setForcedLevel( level );
+      }
     }
     out << F("All controllers");
   } else {
