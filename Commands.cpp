@@ -440,8 +440,8 @@ const char commandDescs[] PROGMEM =
 "showProfiles\0\0" "Shows all profiles.\0"
 "resetProfile\0 PID HS\0" "Resets the profile PID; profile mode is heating (HS=0) or switch (HS=1)\0"
 "addProfile\0 HS\0" "Adds a new profile in mode heating (HS=0) or switch (HS=1)\0"
-"addEntry\0 PID XXXX\0" "Adds a new entry to profiel PID.\0"
-"setEntry\0 PID EID XXXX\0" "Sets the values of entry EID of profile PID.\0"
+"addEntry\0 PID mdmdfss HH MM T\0" "Adds a new entry to profile PID.\0"
+"setEntry\0 PID EID mdmdfss HH MM T\0" "Sets the values of entry EID of profile PID.\0"
 "removeEntry\0 PID EID\0" "Removes the entry EID of profile PID.\0"
 ;
 

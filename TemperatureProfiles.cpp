@@ -368,7 +368,7 @@ namespace TemperatureProfiles{
         in.readBytes( daysOfWeek, 7 );
         uint8_t dow = 0;
         for ( int i = 0; i < 7; ++i ){
-          if ( daysOfWeek[ i ] != '-' ){
+          if ( daysOfWeek[ i ] != '-' && daysOfWeek[ i ] != '.' ){
             dow |= 1 << i;
           }
         }
