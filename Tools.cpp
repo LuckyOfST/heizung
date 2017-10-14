@@ -3,6 +3,8 @@
 #include "Defines.h"
 #include "Tools.h"
 
+bool htmlMode = false;
+
 EEPROMStream g_eeprom;
 
 unsigned char g_buffer[ BUFFER_LENGTH + 1 ];
@@ -30,7 +32,7 @@ void writeTime( Stream& out ){
   //out << F("Current time is ")  << lz(day()) << '.' << lz(month()) << '.' << year() << ' ' << lz(hour()) << ':' << lz(minute()) << ':' << lz(second()) << endl;
   out << F( "Current time is " );
   writeTime( out, now() );
-  out << endl;
+  endline( out );
 }
 
 void writeTime( Stream& out, const time_t& t ){

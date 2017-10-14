@@ -35,7 +35,7 @@ Actor* g_actors[ ACTOR_COUNT + 1 ] = {
   new Actor( 21 ),
   new Actor( 22 ),
   new Actor( 23 ),
-  new Actor( 24 ),
+  new Actor( 24, true ),
   0 // define 0 as last entry!
 };
 
@@ -160,9 +160,9 @@ void Actor::applyActorsStates(){
       }
       state >>= 1;
 #ifdef INVERT_RELAIS_LEVEL
-      if ( !g_actors[ i ]->isOpen() ){
+      if ( g_actors[ i ]->_invertOutputPin ^ !g_actors[ i ]->isOpen() ){
 #else
-      if ( g_actors[ i ]->isOpen() ){
+      if ( g_actors[ i ]->_invertOutputPin ^ g_actors[ i ]->isOpen() ){
 #endif
         state |= 0x8000;
       }
@@ -186,11 +186,11 @@ void Actor::applyActorsStates(){
 #ifdef ACTORS_COMMTYPE_DIRECT
 Actor::Actor( uint8_t id, unsigned char pin )
 #elif defined(ACTORS_COMMTYPE_SERIAL_V1) || defined( ACTORS_COMMTYPE_CRYSTAL64IO )
-Actor::Actor( uint8_t id )
+Actor::Actor( uint8_t id, bool invertOutputPin )
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
 #endif // ACTORS_COMMTYPE_DIRECT
-:_id( id )
+:_aid( id )
 ,_level( 0 )
 ,_open( false )
 ,_state( false )
@@ -198,13 +198,15 @@ Actor::Actor( uint8_t id )
 , _waitingForPower( false )
 #ifdef ACTORS_COMMTYPE_DIRECT
 ,_pin( pin )
+#else
+, _invertOutputPin( invertOutputPin )
 #endif // ACTORS_COMMTYPE_DIRECT
 , _mode( Standard )
 {
 }
 
 const char* Actor::getName() const{
-  strcpy_P( (char*)g_buffer, (char*)pgm_read_word(&(g_actorNames[ _id ])) );
+  strcpy_P( (char*)g_buffer, (char*)pgm_read_word(&(g_actorNames[ _aid ])) );
   return (char*)g_buffer;
 }
   

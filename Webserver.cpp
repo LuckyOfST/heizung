@@ -94,12 +94,16 @@ void execWebserver(){
             ++filename;
             if ( !strncmp( filename, "cmd=", 4 ) ){
               filename += 4;
+              htmlMode = true;
               client << F("HTTP/1.1 200 OK") << endl;
-              client << F("Content-Type: text/plain") << endl << endl;
+              client << F("Content-Type: text/html") << endl << endl;
+              client << F( "<!doctype html><body><html>" );
               String s( filename );
               s.replace( "%20", " " );
               StringStream ss( s );
               interpret( ss, client );
+              client << F( "</body></html>" ) << endl;
+              htmlMode = false;
               break;
             }
           }

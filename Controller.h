@@ -32,7 +32,7 @@ public:
 
   Controller( uint8_t id );
   
-  uint8_t getID() const{ return _id; }
+  uint8_t getID() const{ return _cid; }
   
   const char* getName() const;
   
@@ -40,7 +40,7 @@ public:
 
   uint8_t getProfileID() const;
   
-  void setProfileID( uint8_t id );
+  void setProfileID( uint8_t pid );
 
   bool isProfileActive() const{ return getTargetT() == 0; }
   
@@ -87,7 +87,7 @@ protected:
 
   unsigned long specialFunctions( float t );
   
-  uint8_t _id;
+  uint8_t _cid;
   float _forcedLevel;
 };
 

@@ -4,6 +4,7 @@
 #include "Actor.h"
 #include "Commands.h"
 #include "Controller.h"
+#include "FTPClient.h"
 #include "NTPClient.h"
 #include "Sensors.h"
 #include "TemperatureProfiles.h"
@@ -26,20 +27,23 @@ void getIP( Stream& in, IPAddress& ip ){
 extern void( *delayedCmd )();
 
 void cmdHelp( Stream& in, Stream& out ){
-  out << F("Supported Commands:") << endl;
+  out << F( "Supported Commands:" );
+  endline( out );
   commandText( out, true );
   while( commandText( out ) ){
     commandText( out );
     out << ": ";
     commandText( out );
-    out << endl;
+    endline( out );
   }
 }
 
 void cmdDetect( Stream& in, Stream& out ){
-  out << F("Detection started...") << endl;
+  out << F( "Detection started..." );
+  endline( out );
   detectSensors( out );
-  out << F("Detection finished.") << endl;
+  out << F( "Detection finished." );
+  endline( out );
 }
 
 void cmdErrors( Stream& in, Stream& out ){
@@ -50,72 +54,90 @@ void cmdResetErrors( Stream& in, Stream& out ){
   for( unsigned short i = 0; i < SENSOR_COUNT; ++i ){
     getSensor( i )._errorCount = 0;
   }
-  out << F("Error counters resetted.") << endl;
+  out << F( "Error counters resetted." );
+  endline( out );
 }
 
 void status( Stream& in, Stream& out, bool includeActors ){
+  //htmlMode = true;
+  out << F( "<style>{font-family:Arial;}table{border:1px solid gray;empty-cells:show;border-collapse:collapse;}td{text-align:right;}</style>" );
   writeTime( out );
   out << F( "Running since " );
   writeTime( out, g_startTime );
-  out << endl << F("Begin status") << endl;
-  out << F("  SENSORS:") << endl;
+  endline( out );
+  out << F("Begin status");
+  endline( out );
+  out << F( "<h1>Sensors</h1><table><tr><th>Sensor<th>Temp<th>Errors<th>Age" );
+  //endline( out );
   for( unsigned short i = 0; i < SENSOR_COUNT; ++i ){
     Sensor& s = getSensor( i );
     if ( !s.valid() ){
-      out << F("    '") << s._name << F("' invalid.") << endl;
+      //out << F("    '") << s._name << F("' invalid.");
+      //endline( out );
+      out << F( "<tr><td align=left>" ) << s._name << F( "<td>invalid" );
       continue;
     }
     // requesting an update leads to a long time until the result is presented...
     //s.update( true );
     int age = now() - s._lastChange;
-    out << F("    '") << s._name << F("': ") << _FLOAT( s._temp, 1 ) << F(" C (") << s._errorCount << F(" errors, age: ") << age << F(" s)") << endl;
+    //out << F( "    '" ) << s._name << F( "': " ) << _FLOAT( s._temp, 1 ) << F( " C (" ) << s._errorCount << F( " errors, age: " ) << age << F( " s)" );
+    out << F( "<tr><td align=left>" ) << s._name << F( "<td>" ) << _FLOAT( s._temp, 1 ) << F( " C<td>" ) << s._errorCount << F( "<td>" ) << age << F( " s" );
+    //endline( out );
     s.sendStatus();
   }
-  out << F("  CONTROLLERS:") << endl;
+  out << F( "</table><h1>Controllers</h1><table><tr><th>Controller<th>Profile<th>Temp<th>Status<th>Actors" );
+  endline( out );
   for( unsigned short i = 0; i < CONTROLLER_COUNT; ++i ){
     if ( g_controller[ i ]->isSwitch() ){
       continue;
     }
-    out << F("    '") << g_controller[ i ]->getName() << F("' ");
-    if ( !g_controller[ i ]->working() ){
-      out << F("[OUT OF FUNCTION] ");
-    }
+    out << F("<tr><td align=left>") << g_controller[ i ]->getName() << F("<td>");
     if ( g_controller[ i ]->getForcedLevel() == -1 ){
-      out << F("set to ");
       if ( g_controller[ i ]->isProfileActive() ){
-        out << F("profile ") << g_controller[ i ]->getProfileID() << F(", currently ");
+        out << g_controller[ i ]->getProfileID();
       }
-      out << _FLOAT( g_controller[ i ]->getT(), 1 ) << F(" C. ");
+      out << F( "<td>" ) << _FLOAT( g_controller[ i ]->getT(), 1 ) << F( " C<td>" );
     } else {
-      out << F("forced to level ") << g_controller[ i ]->getForcedLevel() << ". ";
+      out << F("<td><td>forced to level ") << g_controller[ i ]->getForcedLevel();
+    }
+    if ( !g_controller[ i ]->working() ){
+      out << F( "[OUT OF FUNCTION] " );
     }
     g_controller[ i ]->printStatus( out );
+    out << F( "<td>" );
     if ( includeActors ){
       g_controller[ i ]->printActors( out );
     }
-    out << endl;
+    //endline( out );
   }
-  out << ( includeActors ? F( "  ACTORS:" ) : F( "  SWITCHES:" ) ) << endl;
+  out << F( "</table>" );
+  out << (includeActors ? F( "  ACTORS:" ) : F( "  SWITCHES:" ));
+  endline( out );
   for ( unsigned short i = includeActors ? 0 : HEATING_ACTOR_COUNT; i < ACTOR_COUNT; ++i ){
     out << F( "    '" ) << g_actors[ i ]->getName() << F( "' " );
     if ( g_actors[ i ]->getMode() != Actor::Standard ){
       out << F( "FORCED " );
     }
-    out << ( g_actors[ i ]->isOpen() ? F( "ON" ) : F( "OFF" ) ) << endl;
+    out << (g_actors[ i ]->isOpen() ? F( "ON" ) : F( "OFF" ));
+    endline( out );
   }
-  out << F("  TEMPERATURE PROFILES:") << endl;
+  out << F( "  TEMPERATURE PROFILES:" );
+  endline( out );
   out << F("    ");
   //g_tempProfile.writeSettings( out );
   TemperatureProfiles::writeSettings( out );
   TemperatureProfiles::printProfiles( out );
-  out << F("  CURRENT AMPERAGE: ") << Actor::getCurrentUsedAmperage() << endl;
-  out << F("  FREE RAM: ") << FreeRam() << F(" bytes") << endl;
+  out << F( "  CURRENT AMPERAGE: " ) << Actor::getCurrentUsedAmperage();
+  endline( out );
+  out << F( "  FREE RAM: " ) << FreeRam() << F( " bytes" );
+  endline( out );
 #ifdef SUPPORT_FTP
   out << F( "  FTP SERVER: " );
   printIP( ftpServer, out );
 #endif
-  out << endl;
-  out << F("End status") << endl;
+  endline( out );
+  out << F( "End status" );
+  endline( out );
 }
 
 void cmdStatus( Stream& in, Stream& out ){
@@ -132,9 +154,11 @@ void cmdSet( Stream& in, Stream& out ){
   if ( c ){
     float oldT = c->getTargetT();
     c->readSettings( in );
-    out << F("Changed controller '") << name << F("' from ") << _FLOAT( oldT, 1 ) << F(" C to ") << _FLOAT( c->getTargetT(), 1 ) << F(" C target temperature. (0 means profile mode)") << endl;
+    out << F( "Changed controller '" ) << name << F( "' from " ) << _FLOAT( oldT, 1 ) << F( " C to " ) << _FLOAT( c->getTargetT(), 1 ) << F( " C target temperature. (0 means profile mode)" );
+    endline( out );
   } else {
-    out << F("Unable to find controller '") << name << F("'.") << endl;
+    out << F( "Unable to find controller '" ) << name << F( "'." );
+    endline( out );
   }
 }
 
@@ -147,15 +171,18 @@ void cmdSetMinLevel( Stream& in, Stream& out ){
         g_controller[ i ]->setMinimumLevel( l );
       }
     }
-    out << F("Changed all controller minimum levels to ") << _FLOAT( l, 2 ) << '.' << endl;
+    out << F( "Changed all controller minimum levels to " ) << _FLOAT( l, 2 ) << '.';
+    endline( out );
   } else {
     Controller* c = Controller::find( name );
     if ( c ){
       float oldL = c->getMinimumLevel();
       c->setMinimumLevel( l );
-      out << F("Changed controller '") << name << F("' minimum level from ") << _FLOAT( oldL, 1 ) << F(" to ") << _FLOAT( l, 2 ) << '.' << endl;
+      out << F( "Changed controller '" ) << name << F( "' minimum level from " ) << _FLOAT( oldL, 1 ) << F( " to " ) << _FLOAT( l, 2 ) << '.';
+      endline( out );
     } else {
-      out << F("Unable to find controller '") << name << F("'.") << endl;
+      out << F( "Unable to find controller '" ) << name << F( "'." );
+      endline( out );
     }
   }
 }
@@ -165,14 +192,16 @@ void cmdResetControllerTemperatures( Stream& in, Stream& out ){
     g_controller[ i ]->setTargetT( 21. );
     g_controller[ i ]->setMinimumLevel( 0. );
   }
-  out << F("All controller target temperatures and minimum levels resetted to 21 C / 0%.") << endl;
+  out << F( "All controller target temperatures and minimum levels resetted to 21 C / 0%." );
+  endline( out );
 }
 
 void cmdResetControllerProfiles( Stream& in, Stream& out ){
   for( int i = 0; i < CONTROLLER_COUNT; ++i ){
     g_controller[ i ]->setProfileID( 0 );
   }
-  out << F("All controller temperature profiles resetted to profile 0.") << endl;
+  out << F( "All controller temperature profiles resetted to profile 0." );
+  endline( out );
 }
 
 void cmdSetProfile( Stream& in, Stream& out ){
@@ -181,7 +210,8 @@ void cmdSetProfile( Stream& in, Stream& out ){
   if ( c ){
     int i = in.parseInt();
     c->setProfileID( i );
-    out << F("Profile for controller '") << name << F("' set to profile ") << i << endl;
+    out << F( "Profile for controller '" ) << name << F( "' set to profile " ) << i;
+    endline( out );
   }
 }
 
@@ -189,16 +219,19 @@ void cmdGet( Stream& in, Stream& out ){
   const char* name = readText( in );
   Controller* c = Controller::find( name );
   if ( c ){
-    out << F("Target temperature for controller '") << name << F("' is set to ") << _FLOAT( c->getTargetT(), 1 ) << F(" C.") << endl;
+    out << F( "Target temperature for controller '" ) << name << F( "' is set to " ) << _FLOAT( c->getTargetT(), 1 ) << F( " C." );
+    endline( out );
   } else {
-    out << F("Unable to find controller '") << name << F("'.") << endl;
+    out << F( "Unable to find controller '" ) << name << F( "'." );
+    endline( out );
   }
 }
 
 void cmdGetMinLevels( Stream& in, Stream& out ){
   out << F("Controller minimum levels") << endl;
   for( unsigned short i = 0; i < CONTROLLER_COUNT; ++i ){
-    out << F("  '") << g_controller[ i ]->getName() << F("': ") << _FLOAT( g_controller[ i ]->getMinimumLevel(), 2 ) << endl;
+    out << F( "  '" ) << g_controller[ i ]->getName() << F( "': " ) << _FLOAT( g_controller[ i ]->getMinimumLevel(), 2 );
+    endline( out );
   }
 }
 
@@ -216,7 +249,8 @@ void cmdGetTemp( Stream& in, Stream& out ){
   int h = in.parseInt();
   int m = in.parseInt();
   TemperatureProfiles::setCurrentProfile( id );
-  out << _FLOAT( TemperatureProfiles::temp( dow, h, m ), 1 ) << endl;
+  out << _FLOAT( TemperatureProfiles::temp( dow, h, m ), 1 );
+  endline( out );
 }
 
 void cmdForceActor( Stream& in, Stream& out ){
@@ -233,7 +267,8 @@ void cmdForceActor( Stream& in, Stream& out ){
   } else {
     Actor* a = Actor::findActor( name );
     if ( !a ){
-      out << F( " not found." ) << endl;
+      out << F( " not found." );
+      endline( out );
       return;
     }
     m = in.parseInt() + 1;
@@ -241,13 +276,16 @@ void cmdForceActor( Stream& in, Stream& out ){
   }
   switch ( m ){
   case 0:
-    out << F( " set to standard operating mode." ) << endl;
+    out << F( " set to standard operating mode." );
+    endline( out );
     break;
   case 1:
-    out << F( " forced to be OFF." ) << endl;
+    out << F( " forced to be OFF." );
+    endline( out );
     break;
   case 2:
-    out << F(" forced to be ON." ) << endl;
+    out << F( " forced to be ON." );
+    endline( out );
     break;
   }
 }
@@ -266,15 +304,18 @@ void cmdForceController( Stream& in, Stream& out ){
     out << F( "Controller " ) << name;
     Controller* c = Controller::find( name );
     if ( !c ){
-      out << F( " not found." ) << endl;
+      out << F( " not found." );
+      endline( out );
       return;
     }
     c->setForcedLevel( level );
   }
   if ( level == -1 ){
-    out << F( " set to standard operating mode." ) << endl;
+    out << F( " set to standard operating mode." );
+    endline( out );
   } else {
-    out << F(" forced to level " ) << level << '.' << endl;
+    out << F( " forced to level " ) << level << '.';
+    endline( out );
   }
 }
     
@@ -302,7 +343,8 @@ void cmdSetTime( Stream& in, Stream& out ){
     out << F( "Activated NTP: " );
   }
 #endif
-  out << lz( day() ) << '.' << lz( month() ) << '.' << year() << ' ' << lz( hour() ) << ':' << lz( minute() ) << ':' << lz( second() ) << endl;
+  out << lz( day() ) << '.' << lz( month() ) << '.' << year() << ' ' << lz( hour() ) << ':' << lz( minute() ) << ':' << lz( second() );
+  endline( out );
 }
 
 void cmdGetTime( Stream& in, Stream& out ){
@@ -310,7 +352,8 @@ void cmdGetTime( Stream& in, Stream& out ){
 }
 
 void cmdRequestTemp( Stream& in, Stream& out ){
-  out << F("Request received...") << endl;
+  out << F( "Request received..." );
+  endline( out );
   delayedCmd = &requestTemp;
 }
 
@@ -320,7 +363,8 @@ void cmdTestActors( Stream& in, Stream& out ){
 
 #if defined( ACTORS_COMMTYPE_CRYSTAL64IO )
 void cmdResetI2C( Stream& in, Stream& out ){
-  out << F("Trying to re-initialize i2c bus...") << endl;
+  out << F( "Trying to re-initialize i2c bus..." );
+  endline( out );
   Actor::setupI2C();
 }
 #endif
@@ -330,7 +374,7 @@ void cmdSetFtpServer( Stream& in, Stream& out ){
   getIP( in, ftpServer );
   out << F( "FTP server set to " );
   printIP( ftpServer, out );
-  out << endl;
+  endline( out );
 }
 #endif
 
@@ -369,6 +413,36 @@ void cmdRemoveEntry( Stream& in, Stream& out ){
   uint8_t eid = in.parseInt();
   TemperatureProfiles::removeEntry( pid, eid );
   TemperatureProfiles::printProfile( pid, out );
+}
+
+void cmdSaveSettings( Stream& in, Stream& out ){
+  bool success = ftpOpen();
+  if ( success ){
+    StringStream dir;
+    dir << F( "HeizungSettings" );
+    ftpSetMode( dir.c_str(), FTP_MAKEDIR, true );
+    StringStream fname;
+    fname << F( "HeizungSettings/" ) << readText( in ) << F( ".txt" );
+    if ( ftpSetMode( fname.c_str(), FTP_STORE, false ) ){
+      ftpClient << F( "date,time,currentAmperage,requiredAmperage,freeRAM" );
+      for ( unsigned short i = 0; i < SENSOR_COUNT; ++i ){
+        ftpClient << ',' << getSensor( i )._name;
+      }
+      ftpClient << endl;
+      ftpClient << lz( day() ) << '.' << lz( month() ) << '.' << year() << ',' << lz( hour() ) << ':' << lz( minute() ) << ':' << lz( second() );
+      ftpClient << ',' << Actor::getCurrentUsedAmperage() << ',' << Actor::getCurrentRequiredAmperage() << ',' << FreeRam();
+      for ( unsigned short i = 0; i < SENSOR_COUNT; ++i ){
+        ftpClient << ',';
+        const Sensor& sensor = getSensor( i );
+        if ( sensor.valid() ){
+          ftpClient << _FLOAT( sensor._temp, 1 );
+        }
+      }
+      ftpClient << endl;
+    }
+    ftpClose();
+  }
+  Serial << F( "Temperatures upload " ) << (success ? F( "succeded" ) : F( "failed" )) << endl;
 }
 
 Command commands[] = {

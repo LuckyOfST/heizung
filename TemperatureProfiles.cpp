@@ -152,7 +152,7 @@ namespace TemperatureProfiles{
         s << ' ' << g_eeprom.at( i * 3 + 0 ) << ' ' << g_eeprom.at( i * 3 + 1 ) << ' ' << g_eeprom.at( i * 3 + 2 );
       }
     }
-    s << endl;
+    endline( s );
   }
   
   void readSettings( Stream& s ){
@@ -225,11 +225,13 @@ namespace TemperatureProfiles{
     void print( Stream& s ){
       s << F("Profile ") << _id << F(": ");
       if ( !_nbEntries ){
-        s << F( "empty" ) << endl;
+        s << F( "empty" );
+        endline( s );
         return;
       }
       if ( _heatingProfile ){
-        s << F( "heating" ) << endl;
+        s << F( "heating" );
+        endline( s );
         for ( int i = 0; i < _nbEntries; ++i ){
           s << i << F( ": " );
           bool on = printDOW( i, s );
@@ -242,7 +244,7 @@ namespace TemperatureProfiles{
           if ( on ){
             s << F( " (min level active)" );
           }
-          s << endl;
+          endline( s );
         }
       } else {
         s << F( "switch" ) << endl;
@@ -253,7 +255,8 @@ namespace TemperatureProfiles{
           uint8_t hour = startTime / 1800;
           uint8_t min = (startTime - hour * 1800) / 30;
           uint8_t sec = (startTime % 30) * 2;
-          s << lz( hour ) << ':' << lz( min ) << ':' << lz( sec ) << ' ' << (on ? F( "on" ) : F( "off" )) << endl;
+          s << lz( hour ) << ':' << lz( min ) << ':' << lz( sec ) << ' ' << (on ? F( "on" ) : F( "off" ));
+          endline( s );
         }
       }
     }
@@ -405,7 +408,8 @@ namespace TemperatureProfiles{
 
   void printProfiles( Stream& s ){
     uint8_t nbProfiles = getNbProfiles();
-    s << nbProfiles << F( " profiles" ) << endl;
+    s << nbProfiles << F( " profiles" );
+    endline( s );
     for ( uint8_t id = 0; id < nbProfiles; ++id ){
       printProfile( id, s );
     }

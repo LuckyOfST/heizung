@@ -68,14 +68,14 @@ public:
 #endif
 
 #if defined( ACTORS_COMMTYPE_DIRECT )
-  Actor( uint8_t id, unsigned char pin );
+  Actor( uint8_t aid, unsigned char pin );
 #elif defined(ACTORS_COMMTYPE_SERIAL_V1) || defined( ACTORS_COMMTYPE_CRYSTAL64IO )
-  Actor( uint8_t id );
+  Actor( uint8_t aid, bool invertOutputPin = false );
 #else
   #error ACTORS_COMMTYPE_XXX must be defined!
 #endif // ACTORS_COMMTYPE_DIRECT
 
-  uint8_t getID() const{ return _id; }
+  uint8_t getID() const{ return _aid; }
 
   const char* getName() const;
 
@@ -97,19 +97,17 @@ public:
   
   void sendStatus() const;
 
-  bool isSwitch() const{ return _id >= HEATING_ACTOR_COUNT; }
+  bool isSwitch() const{ return _aid >= HEATING_ACTOR_COUNT; }
   
   // If the standard mod is forced the mode set using setMode(...) is ignored and the standard mode is used.
   // This is usefull while executing special (mostly security) functions in the controllers.
   void forceStandardMode( bool forced );
   
-  uint8_t _id;
+  uint8_t _aid;
+  uint8_t _open : 1, _state : 1, _waitingForPower : 1, _invertOutputPin : 1;
   float _level;
-  bool _open;
-  bool _state;
   float _currentAmperage;
   unsigned long _switchOnTime;
-  bool _waitingForPower;
 #if defined( ACTORS_COMMTYPE_DIRECT )
   unsigned char _pin;
 #endif

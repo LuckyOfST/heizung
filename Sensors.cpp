@@ -1,5 +1,6 @@
 #include "Network.h"
 #include "Sensors.h"
+#include "Tools.h"
 
 // elements = number of digital IO pin the 1-wire-bus is connected to
 OneWire g_busses[ BUS_COUNT ] = {
@@ -148,13 +149,15 @@ unsigned short detectSensors( Stream& out ){
   // iterate over all busses
   for( int bus = 0; bus < BUS_COUNT; ++bus ){
     if ( !g_busses[ bus ].reset() ){
-      out << F( "  Bus " ) << bus << F( " is not responding." ) << endl;
+      out << F( "  Bus " ) << bus << F( " is not responding." );
+      endline( out );
       continue;
     }
     DallasTemperature& temp = g_temperatures[ bus ];
     temp.begin();
     uint8_t deviceCount = temp.getDeviceCount();
-    out << F( "  " ) << deviceCount << F( " devices on bus " ) << bus << endl;
+    out << F( "  " ) << deviceCount << F( " devices on bus " ) << bus;
+    endline( out );
     // iterate over all sensors of each bus
     for( uint8_t i = 0; i < deviceCount; ++i ){
       DeviceAddress addr;
@@ -163,14 +166,17 @@ unsigned short detectSensors( Stream& out ){
       }
       unsigned short sid = findSensor( addr );
       if ( sid == SENSOR_COUNT ){
-        out << F("  New device detected: ") << endl;
-        out << F("{ \"new_device\", { ");
+        out << F( "  New device detected: " );
+        endline( out );
+        out << F( "{ \"new_device\", { " );
         for( uint8_t j = 0; j < 8; ++j ){
           out << ( j > 0 ? F(", ") : F("") ) << F("0x") << ( addr[ j ] < 16 ? F("0") : F("") ) << _HEX( addr[ j ] );
         }
-        out << F(" }, ") << bus << F(" }, // ") << SENSOR_COUNT << endl;
+        out << F( " }, " ) << bus << F( " }, // " ) << SENSOR_COUNT;
+        endline( out );
       } else {
-        out << F("    Sensor '") << g_sensors[ sid ]._name << F("' detected.") << endl;
+        out << F( "    Sensor '" ) << g_sensors[ sid ]._name << F( "' detected." );
+        endline( out );
       }
     }
   }
@@ -181,12 +187,14 @@ unsigned short detectSensors( Stream& out ){
     DallasTemperature& temp = g_temperatures[ sensor._bus ];
     //Serial << sensor._name << "," << isSensorValid(temp,sensor) << "," << temp.validAddress(sensor._addr) << "," << temp.isConnected(sensor._addr) << "," << temp.getTempC(sensor._addr) << endl;
     if ( !isSensorValid( temp, sensor ) || !temp.validAddress( sensor._addr ) || !temp.isConnected( sensor._addr ) || temp.getTempC( sensor._addr ) < -126.f ){
-      out << F("  ERROR: Device '") << sensor._name << F("' could not be found!") << endl;
+      out << F( "  ERROR: Device '" ) << sensor._name << F( "' could not be found!" );
+      endline( out );
       //sensor._valid = false;
       sensor.setValid( false );
     } else {
       sensor.update( true );
-      out << F("device '") << sensor._name << F("' found. (") << _FLOAT( sensor._temp, 1 ) << F(" C)") << endl;
+      out << F( "device '" ) << sensor._name << F( "' found. (" ) << _FLOAT( sensor._temp, 1 ) << F( " C)" );
+      endline( out );
     }
   }
   return BUS_COUNT;
@@ -241,11 +249,13 @@ void writeSensorsErrors( Stream& out ){
     const Sensor& s = g_sensors[ i ];
     if ( s._errorCount > 0 ){
       errorsFound = true;
-      out << s._errorCount << F(" errors detected for sensor '") << s._name << F("'.") << endl;
+      out << s._errorCount << F( " errors detected for sensor '" ) << s._name << F( "'." );
+      endline( out );
     }
   }
   if ( !errorsFound ){
-    out << F("No errors detected.") << endl;
+    out << F( "No errors detected." );
+    endline( out );
   }
 }
 

@@ -101,13 +101,13 @@ PGM_P const g_controllerNames[ CONTROLLER_COUNT ] PROGMEM = {
 };
 
 Controller::Controller( uint8_t id )
-:_id( id )
+:_cid( id )
 ,_forcedLevel( -1 )
 {
 }
   
 const char* Controller::getName() const{
-  strcpy_P( (char*)g_buffer, (char*)pgm_read_word(&(g_controllerNames[ _id ])) );
+  strcpy_P( (char*)g_buffer, (char*)pgm_read_word(&(g_controllerNames[ _cid ])) );
   return (char*)g_buffer;
 }
   
@@ -117,11 +117,11 @@ void Controller::setup( int i, int amount ){
 }
 
 uint8_t Controller::getProfileID() const{
-  return EEPROM.read( EEPROM_TEMP_BASE + _id * EEPROM_CONTROLLER_SETTING_SIZE );
+  return EEPROM.read( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE );
 }
   
-void Controller::setProfileID( uint8_t id ){
-  EEPROM.write( EEPROM_TEMP_BASE + _id * EEPROM_CONTROLLER_SETTING_SIZE, id );
+void Controller::setProfileID( uint8_t pid ){
+  EEPROM.write( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE, pid );
 }
 
 void Controller::setTargetT( float t ){
@@ -135,21 +135,21 @@ void Controller::setTargetT( float t ){
   }
   int targetT = t * 10;
   DEBUG{ Serial << F("setTargetT to (int) ") << targetT << endl; }
-  EEPROM.write( EEPROM_TEMP_BASE + _id * EEPROM_CONTROLLER_SETTING_SIZE + 1, targetT >> 8 );
-  EEPROM.write( EEPROM_TEMP_BASE + _id * EEPROM_CONTROLLER_SETTING_SIZE + 2, targetT & 0xff );
+  EEPROM.write( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE + 1, targetT >> 8 );
+  EEPROM.write( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE + 2, targetT & 0xff );
 }
   
 float Controller::getTargetT() const{
-  int targetT = EEPROM.read( EEPROM_TEMP_BASE + _id * EEPROM_CONTROLLER_SETTING_SIZE + 1 ) * 256 + EEPROM.read( EEPROM_TEMP_BASE + _id * EEPROM_CONTROLLER_SETTING_SIZE + 2 );
+  int targetT = EEPROM.read( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE + 1 ) * 256 + EEPROM.read( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE + 2 );
   return targetT / 10.f;
 }
 
 void Controller::setMinimumLevel( float minLevel ){
-  EEPROM.write( EEPROM_TEMP_BASE + _id * EEPROM_CONTROLLER_SETTING_SIZE + 3, (uint8_t)( minLevel * 255 ) );
+  EEPROM.write( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE + 3, (uint8_t)( minLevel * 255 ) );
 }
 
 float Controller::getMinimumLevel() const{
-  return EEPROM.read( EEPROM_TEMP_BASE + _id * EEPROM_CONTROLLER_SETTING_SIZE + 3 ) / 255.f;
+  return EEPROM.read( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE + 3 ) / 255.f;
 }
 
 float Controller::getT( bool& activeFlag ) const{
