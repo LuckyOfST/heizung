@@ -35,8 +35,10 @@ public:
   uint8_t getID() const{ return _cid; }
   
   const char* getName() const;
-  
-  virtual void setup( int i, int amount );
+
+  String title() const override;
+
+  void setup( int i, int amount ) override;
 
   uint8_t getProfileID() const;
   

@@ -8,32 +8,23 @@ class SwitchController
 {
 public:
   SwitchController( uint8_t id, int8_t actor );
-  //virtual ~SwitchController();
 
-  //virtual void setup( int i, int amount );
-  virtual bool isSwitch() const;
-  virtual unsigned long doJob();
+  bool isSwitch() const override;
+  unsigned long doJob() override;
 
-  // T measured by sensor(s) used to compare against the target T
-  //virtual float getMeasuredT() const;
+  bool working() const override;
 
-  //virtual void writeSettings( Stream& s );
+  void printStatus( Stream& out ) const override;
 
-  //virtual void readSettings( Stream& s );
+  void sendStatus() const override;
 
-  virtual bool working() const;
-
-  virtual void printStatus( Stream& out ) const;
-
-  virtual void sendStatus() const;
-
-  virtual void printActors( Stream& out ) const;
+  void printActors( Stream& out ) const override;
 
 protected:
   float getLevel( bool& activeFlag ) const;
   
   // level: 0=off; 1=on (100%)
-  virtual void heat( float level );
+  void heat( float level ) override;
 
 private:
   int8_t _actor;

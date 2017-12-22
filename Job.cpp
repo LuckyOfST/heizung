@@ -3,6 +3,7 @@
 
 #include "Defines.h"
 #include "Job.h"
+#include "Tools.h"
 
 Job* Job::g_headJob = 0;
 
@@ -24,15 +25,28 @@ void Job::setupJobs( Job** job ){
 unsigned long Job::executeJobs( unsigned long minDelay ){
   unsigned long start = millis();
   DEBUG{ Serial << F("exec jobs START") << endl; }
+#ifdef SEND_JOB_EXECUTIONS
+  StringStream jobExecutions;
+  jobExecutions << F( "jobs:" );
+#endif
   Job* job = g_headJob;
   while ( job ){
     //minDelay = min( minDelay, job->exec() );
-    unsigned long d = job->exec();
+    bool executed = false;
+    unsigned long d = job->exec( executed );
     if ( d < minDelay ){
       minDelay = d;
     }
+#ifdef SEND_JOB_EXECUTIONS
+    if ( executed ) {
+      jobExecutions << ' ' << job->title() << '(' << d << ')';
+    }
+#endif
     job = job->nextJob();
   }
+#ifdef SEND_JOB_EXECUTIONS
+  BEGINMSG jobExecutions.str() ENDMSG
+#endif
   DEBUG{ Serial << F("exec jobs END (") << ( millis() - start ) << F(" ms)") << endl; }
   return minDelay;
 }
@@ -62,13 +76,14 @@ void Job::setup( int i, int amount ){
   g_headJob = this;
 }
  
-unsigned long Job::exec(){
+unsigned long Job::exec( bool& executed ){
   update();
   unsigned long elapsed = millis() - _lastMillis;
   if ( elapsed >= _delayMillis ){
     _lastMillis += _delayMillis;
     _delayMillis = doJob();
     elapsed = 0;
+    executed = true;
   }
   return _delayMillis - elapsed;
 }

@@ -4,7 +4,7 @@
 
 // elements = number of digital IO pin the 1-wire-bus is connected to
 OneWire g_busses[ BUS_COUNT ] = {
-  23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 42, 44, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40
+  23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40
 };
 
 // proxy classes to read temperatures from the busses. One entry for each bus.

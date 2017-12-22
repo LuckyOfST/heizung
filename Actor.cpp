@@ -210,6 +210,12 @@ const char* Actor::getName() const{
   return (char*)g_buffer;
 }
   
+String Actor::title() const {
+  String s = F( "act-" );
+  s += getName();
+  return s;
+}
+
 void Actor::setup( int i, int amount ){
   if ( isSwitch() ){
     return;

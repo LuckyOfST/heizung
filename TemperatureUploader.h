@@ -12,7 +12,9 @@ class TemperaturesUploader
 public:
   TemperaturesUploader();
 
-  virtual unsigned long doJob();
+  unsigned long doJob() override;
+
+  String title() const override;
 
 private:
   int _retryCnt;

@@ -70,5 +70,10 @@ unsigned long TemperaturesUploader::doJob(){
   //return success || _retryCnt ? 15ul * 1000ul : 60ul * 1000ul;
 }
 
+String TemperaturesUploader::title() const {
+  return F( "tUp" );
+}
+
+
 #endif // SUPPORT_TemperatureUploader
 

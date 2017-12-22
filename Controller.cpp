@@ -106,6 +106,12 @@ Controller::Controller( uint8_t id )
 {
 }
   
+String Controller::title() const {
+  String s = F( "ctrl-" );
+  s += getName();
+  return s;
+}
+
 const char* Controller::getName() const{
   strcpy_P( (char*)g_buffer, (char*)pgm_read_word(&(g_controllerNames[ _cid ])) );
   return (char*)g_buffer;

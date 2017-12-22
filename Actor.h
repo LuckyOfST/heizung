@@ -79,13 +79,15 @@ public:
 
   const char* getName() const;
 
-  virtual void setup( int i, int amount );
+  String title() const override;
+
+  void setup( int i, int amount ) override;
 
   bool isOpen() const{ return _state; }
   
   void setLevel( float level );
   
-  virtual unsigned long doJob();
+  unsigned long doJob() override;
   
   void setMode( Mode mode );
 
@@ -93,7 +95,7 @@ public:
   
   unsigned long tryWrite( bool on, unsigned long delay = 0 );
 
-  virtual void update();
+  void update() override;
   
   void sendStatus() const;
 

@@ -7,6 +7,8 @@
 //#define DEBUG2 if(true)
 #define DEBUG2 if(false)
 
+#define SEND_JOB_EXECUTIONS
+
 //////////////////////////////////////////////////////////////////////////////
 
 #define SUPPORT_Network
@@ -33,6 +35,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #ifdef SUPPORT_UDP_messages
+#include "Network.h"
+
   #define BEGINMSG if(true){ Udp.beginPacket(0xffffffff,12888);Udp <<
   #define ENDMSG ; Udp.endPacket(); }
 #else

@@ -81,8 +81,12 @@ void interpret( Stream& in, Stream& out ){
   out << F("Unknown command '") << cmd << F("'.") << endl;
 }
 
+#define BLINK_IN_FIXED_INTERVAL
+
 void loop(){
+#ifndef BLINK_IN_FIXED_INTERVAL
   digitalWrite( 13, HIGH );
+#endif
 
   startWatchdog();
 
@@ -113,7 +117,19 @@ void loop(){
 
   stopWatchdog();
 
+#ifdef BLINK_IN_FIXED_INTERVAL
+  static unsigned long lastMillis = millis();
+  unsigned long m = millis();
+  if ( m - lastMillis > 500 ) {
+    lastMillis = m;
+    static bool on = false;
+    on = !on;
+    digitalWrite( 13, on ? HIGH : LOW );
+  }
+#else
   digitalWrite( 13, LOW );
+#endif
+
 #ifndef SUPPORT_eBus
   DEBUG{ Serial << F("minDelay=") << minDelay << endl; }
   delay( minDelay );

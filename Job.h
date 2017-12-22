@@ -11,6 +11,8 @@ public:
   
   virtual void setup( int i, int amount );
   
+  virtual String title() const = 0;
+
 protected:
 
   virtual void update();
@@ -23,7 +25,7 @@ private:
   static Job* g_headJob;
 
   Job* nextJob() const{ return _nextJob; }
-  unsigned long exec();
+  unsigned long exec( bool& executed );
   void wait();
 
   Job* _previousJob;

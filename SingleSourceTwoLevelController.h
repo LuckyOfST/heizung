@@ -9,22 +9,22 @@ class SingleSourceTwoLevelController
 public:
   SingleSourceTwoLevelController( uint8_t id, int8_t sensor, int8_t actor );
 
-  virtual bool isSwitch() const;
+  bool isSwitch() const override;
 
-  virtual bool working() const;
+  bool working() const override;
 
-  virtual unsigned long doJob();
+  unsigned long doJob() override;
 
-  float getMeasuredT() const;
+  float getMeasuredT() const override;
 
-  virtual void printStatus( Stream& out ) const;
+  void printStatus( Stream& out ) const override;
 
-  virtual void sendStatus() const;
+  void sendStatus() const override;
 
-  virtual void printActors( Stream& out ) const;
+  void printActors( Stream& out ) const override;
 
 protected:
-  virtual void heat( float level );
+  void heat( float level ) override;
   
 private:
   int8_t _sensor;
