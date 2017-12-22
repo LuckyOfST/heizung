@@ -21,19 +21,19 @@ void get_mcusr( void ){
 
 /// LONG WATCHDOG TIMER
 volatile int counter;
-#define counterMax 113  //Number of times of ISR(WDT_vect) to autoreset the board. I will autoreset the board after 8 secondes x counterMax
+#define counterMax 113  //Number of times of ISR(WDT_vect) to autoreset the board. I will autoreset the board after 8 seconds x counterMax
 
 ISR ( WDT_vect )
 {
   counter += 1;
   if ( counter < counterMax - 1 ) {
     wdt_reset(); // Reset timer, still in interrupt mode
-    // Next time watchdogtimer complete the cicle, it will generate antoher ISR interrupt
+    // Next time watchdogtimer complete the cycle, it will generate another ISR interrupt
   } else {
     MCUSR = 0;
     WDTCSR |= 0b00011000;    //WDCE y WDE = 1 --> config mode
     WDTCSR = 0b00001000 | 0b100001;    //clear WDIE (interrupt mode disabled), set WDE (reset mode enabled) and set interval to 8 seconds
-    //Next time watchdog timer complete the cicly will reset the IC
+    //Next time watchdog timer complete the cycle will reset the IC
   }
 }
 

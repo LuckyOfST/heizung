@@ -415,6 +415,7 @@ void cmdRemoveEntry( Stream& in, Stream& out ){
   TemperatureProfiles::printProfile( pid, out );
 }
 
+#ifdef SUPPORT_FTP
 void cmdSaveSettings( Stream& in, Stream& out ){
   bool success = ftpOpen();
   if ( success ){
@@ -444,6 +445,7 @@ void cmdSaveSettings( Stream& in, Stream& out ){
   }
   Serial << F( "Temperatures upload " ) << (success ? F( "succeded" ) : F( "failed" )) << endl;
 }
+#endif
 
 Command commands[] = {
   cmdHelp,

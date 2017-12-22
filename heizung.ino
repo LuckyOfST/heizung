@@ -78,7 +78,7 @@ void interpret( Stream& in, Stream& out ){
     s.clear();
     ++idx;
   }
-  out << F("Unknwon command '") << cmd << F("'.") << endl;
+  out << F("Unknown command '") << cmd << F("'.") << endl;
 }
 
 void loop(){
@@ -87,12 +87,6 @@ void loop(){
   startWatchdog();
 
   DEBUG{ Serial << F("FreeRam: ") << FreeRam() << endl; }
-
-#ifdef SUPPORT_Webserver
-  DEBUG{ Serial << F("execWebserver START") << endl; }
-  execWebserver();
-  DEBUG{ Serial << F("execWebserver END") << endl; }
-#endif
 
   // listen to serial port for commands
   if ( Serial.available() ){
@@ -110,6 +104,12 @@ void loop(){
   unsigned long minDelay = Job::executeJobs( 50 );
   
   Actor::applyActorsStates();
+
+#ifdef SUPPORT_Webserver
+  DEBUG{ Serial << F( "execWebserver START" ) << endl; }
+  execWebserver();
+  DEBUG{ Serial << F( "execWebserver END" ) << endl; }
+#endif
 
   stopWatchdog();
 
