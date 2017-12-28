@@ -7,8 +7,6 @@
 //#define DEBUG2 if(true)
 #define DEBUG2 if(false)
 
-#define SEND_JOB_EXECUTIONS
-
 //////////////////////////////////////////////////////////////////////////////
 
 #define SUPPORT_Network
@@ -35,12 +33,20 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #ifdef SUPPORT_UDP_messages
-#include "Network.h"
+  #include "Network.h"
 
-  #define BEGINMSG if(true){ Udp.beginPacket(0xffffffff,12888);Udp <<
+  // Bitmask for UDP debugging informations:
+  // 0 - sensor states / temperatures
+  // 1 - controller / actor states
+  // 2 - job executions
+  // 3 - webserver executions
+  // 4 - FTP executions
+  extern int g_debugMask; // hint: variable is defined in Tools.cpp
+
+  #define BEGINMSG(bit) if(bit==-1||(g_debugMask&(1<<bit))){ Udp.beginPacket(0xffffffff,12888);Udp <<
   #define ENDMSG ; Udp.endPacket(); }
 #else
-  #define BEGINMSG if(false){ Serial <<
+  #define BEGINMSG(bit) if(false){ Serial <<
   #define ENDMSG ; }
 #endif
 

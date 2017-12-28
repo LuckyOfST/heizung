@@ -134,8 +134,17 @@ void status( Stream& in, Stream& out, bool includeActors ){
 #ifdef SUPPORT_FTP
   out << F( "  FTP SERVER: " );
   printIP( ftpServer, out );
-#endif
   endline( out );
+#endif
+#ifdef SUPPORT_NTP
+  out << F( "  NTP SERVER: " );
+  printIP( timeServer, out );
+  endline( out );
+#endif
+#ifdef SUPPORT_UDP_messages
+  out << F( "  UDP LOGGING MASK: " ) << g_debugMask;
+  endline( out );
+#endif
   out << F( "End status" );
   endline( out );
 }
@@ -370,11 +379,29 @@ void cmdResetI2C( Stream& in, Stream& out ){
 #endif
 
 #ifdef SUPPORT_FTP
-void cmdSetFtpServer( Stream& in, Stream& out ){
+void cmdSetFtpServer( Stream& in, Stream& out ) {
   getIP( in, ftpServer );
+  g_eeprom.setCurrentBaseAddr( EEPROM_FTPSERVERADDR );
+  for ( int i = 0; i < 4; ++i ) {
+    g_eeprom.write( ftpServer[ i ] );
+  }
   out << F( "FTP server set to " );
   printIP( ftpServer, out );
   endline( out );
+}
+#endif
+
+#ifdef SUPPORT_NTP
+void cmdSetNtpServer( Stream& in, Stream& out ) {
+  getIP( in, timeServer );
+  g_eeprom.setCurrentBaseAddr( EEPROM_NTPSERVERADDR );
+  for ( int i = 0; i < 4; ++i ) {
+    g_eeprom.write( timeServer[ i ] );
+  }
+  out << F( "NTP server set to " );
+  printIP( timeServer, out );
+  endline( out );
+  setupNTP();
 }
 #endif
 
@@ -447,6 +474,16 @@ void cmdSaveSettings( Stream& in, Stream& out ){
 }
 #endif
 
+#ifdef SUPPORT_UDP_messages
+void cmdSetUdpLoggingMask( Stream& in, Stream& out ) {
+  g_debugMask = in.parseInt();
+  g_eeprom.setCurrentBaseAddr( EEPROM_UDP_LOGGING_MASK_BASE );
+  g_eeprom.writeInt( g_debugMask );
+  out << F( "Debug mask set to " ) << g_debugMask;
+  endline( out );
+}
+#endif
+
 Command commands[] = {
   cmdHelp,
   cmdDetect,
@@ -475,6 +512,12 @@ Command commands[] = {
   cmdTestActors,
 #ifdef SUPPORT_FTP
   cmdSetFtpServer,
+#endif
+#ifdef SUPPORT_NTP
+  cmdSetNtpServer,
+#endif
+#ifdef SUPPORT_UDP_messages
+  cmdSetUdpLoggingMask,
 #endif
   cmdShowProfiles,
   cmdResetProfile,
@@ -512,6 +555,12 @@ const char commandDescs[] PROGMEM =
 "testActors\0\0" "Test all actors by force them on/off.\0"
 #ifdef SUPPORT_FTP
 "setFtpServer\0 X.X.X.X\0" "Sets the ftp server address where the temperature protocol is stored.\0"
+#endif
+#ifdef SUPPORT_NTP
+"setNtpServer\0 X.X.X.X\0" "Sets the time server address used for time synchronization.\0"
+#endif
+#ifdef SUPPORT_UDP_messages
+"setUdpLoggingMask\0 mask\0" "Sets the bitmask to control the informations sent to UDP port 12888.\0"
 #endif
 "showProfiles\0\0" "Shows all profiles.\0"
 "resetProfile\0 PID HS\0" "Resets the profile PID; profile mode is heating (HS=0) or switch (HS=1)\0"

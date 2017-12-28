@@ -25,10 +25,8 @@ void Job::setupJobs( Job** job ){
 unsigned long Job::executeJobs( unsigned long minDelay ){
   unsigned long start = millis();
   DEBUG{ Serial << F("exec jobs START") << endl; }
-#ifdef SEND_JOB_EXECUTIONS
   StringStream jobExecutions;
   jobExecutions << F( "jobs:" );
-#endif
   Job* job = g_headJob;
   while ( job ){
     //minDelay = min( minDelay, job->exec() );
@@ -37,16 +35,12 @@ unsigned long Job::executeJobs( unsigned long minDelay ){
     if ( d < minDelay ){
       minDelay = d;
     }
-#ifdef SEND_JOB_EXECUTIONS
     if ( executed ) {
       jobExecutions << ' ' << job->title() << '(' << d << ')';
     }
-#endif
     job = job->nextJob();
   }
-#ifdef SEND_JOB_EXECUTIONS
-  BEGINMSG jobExecutions.str() ENDMSG
-#endif
+  BEGINMSG(2) jobExecutions.str() ENDMSG
   DEBUG{ Serial << F("exec jobs END (") << ( millis() - start ) << F(" ms)") << endl; }
   return minDelay;
 }

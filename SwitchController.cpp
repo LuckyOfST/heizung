@@ -89,7 +89,7 @@ void SwitchController::printStatus( Stream& out ) const{
 
 void SwitchController::sendStatus() const{
   // S name profileID heatingLevel minimumLevel forcedLevel
-  BEGINMSG "S " << getName() << ' ' << getProfileID() << ' ' << _FLOAT( _heat, 2 ) << ' ' << _FLOAT( getMinimumLevel(), 2 ) << ' ' << _FLOAT( getForcedLevel(), 2 ) ENDMSG;
+  BEGINMSG(1) "S " << getName() << ' ' << getProfileID() << ' ' << _FLOAT( _heat, 2 ) << ' ' << _FLOAT( getMinimumLevel(), 2 ) << ' ' << _FLOAT( getForcedLevel(), 2 ) ENDMSG;
   if ( _actor != -1 ){
     g_actors[ _actor ]->sendStatus();
   }

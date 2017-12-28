@@ -1,10 +1,11 @@
 #include "Network.h"
 #include "NTPClient.h"
+#include "Tools.h"
 #include "Webserver.h"
 
 #ifdef SUPPORT_Network
 
-//#define USE_DHCP
+#define USE_DHCP
 
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
@@ -45,11 +46,21 @@ void setupNetwork(){
 #endif // USE_DHCP
   Serial << F("  IP: ") << Ethernet.localIP() << endl;
 #ifdef SUPPORT_NTP
+  g_eeprom.setCurrentBaseAddr( EEPROM_NTPSERVERADDR );
+  for ( int i = 0; i < 4; ++i ) {
+    timeServer[ i ] = g_eeprom.read();
+  }
   setupNTP();
 #endif // SUPPORT_NTP
 #ifdef SUPPORT_Webserver
   setupWebserver();
 #endif // SUPPORT_Webserver
+#ifdef SUPPORT_FTP
+  g_eeprom.setCurrentBaseAddr( EEPROM_FTPSERVERADDR );
+  for ( int i = 0; i < 4; ++i ) {
+    ftpServer[ i ] = g_eeprom.read();
+  }
+#endif // SUPPORT_FTP
 }
 
 #endif // SUPPORT_Network

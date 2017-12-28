@@ -99,7 +99,7 @@ bool Sensor::update( bool waitForValue ){
 }
 
 void Sensor::sendStatus(){
-  BEGINMSG "T " << _name << ' ' << _FLOAT( _temp, 1 ) << ' ' << int( now() - _lastChange ) ENDMSG
+  BEGINMSG(0) "T " << _name << ' ' << _FLOAT( _temp, 1 ) << ' ' << int( now() - _lastChange ) ENDMSG
 }
 
 unsigned short findSensor( const DeviceAddress& addr ){
@@ -239,7 +239,7 @@ void requestTemp(){
     ok = true;
   }
   if ( !ok ){
-    BEGINMSG F("No working sensor found.") ENDMSG
+    BEGINMSG(0) F("No working sensor found.") ENDMSG
   }
 }
 

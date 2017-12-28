@@ -18,7 +18,7 @@ TemperaturesUploader::TemperaturesUploader()
 
 unsigned long TemperaturesUploader::doJob(){
   if ( timeStatus() == timeNotSet ){
-    BEGINMSG F("TermperaturesUploader IGNORED UPLOAD due to missing time.") ENDMSG
+    BEGINMSG(4) F("TermperaturesUploader IGNORED UPLOAD due to missing time.") ENDMSG
     return 60000ul;
   }
   DEBUG{ Serial << F("TemperaturesUploader START") << endl; }

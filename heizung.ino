@@ -41,6 +41,11 @@ void setup(){
   // disable any watchdog as soon as possible...
   wdt_disable();
 
+#ifdef SUPPORT_UDP_messages
+  g_eeprom.setCurrentBaseAddr( EEPROM_UDP_LOGGING_MASK_BASE );
+  g_debugMask = g_eeprom.readInt();
+#endif
+
   Serial.begin( 19200 );
   Serial << F( "--- SETUP STARTING ---" ) << endl;
 #ifdef SUPPORT_eBus
@@ -70,6 +75,7 @@ void interpret( Stream& in, Stream& out ){
   commandText( s, true );
   while ( commandText( s ) ){
     if ( !strcmp( cmd, s.c_str() ) ){
+      BEGINMSG( 3 ) F( "WS detected cmd: " ) << cmd ENDMSG
       commands[ idx ]( in, out );
       return;
     }

@@ -71,7 +71,7 @@ time_t getNtpTime(){
       if ( showSuccess ){
         showFailure = true;
         showSuccess = false;
-        BEGINMSG F("Time was synchronized to NTP time ") << lz(te.Day) << F(".") << lz(te.Month) << F(".") << 1970 + te.Year << F(" ") << lz(te.Hour) << F(":") << lz(te.Minute) << F(":") << lz(te.Second) << F(".") ENDMSG
+        BEGINMSG(-1) F("Time was synchronized to NTP time ") << lz(te.Day) << F(".") << lz(te.Month) << F(".") << 1970 + te.Year << F(" ") << lz(te.Hour) << F(":") << lz(te.Minute) << F(":") << lz(te.Second) << F(".") ENDMSG
       }
       if ( !hasStartTime() ){
         setSyncInterval( 60 * 60 * 6 );
@@ -84,7 +84,7 @@ time_t getNtpTime(){
   if ( showFailure ){
     showFailure = false;
     showSuccess = true;
-    BEGINMSG F("ERROR: No NTP time available! Time update could not be executed!") ENDMSG
+    BEGINMSG(-1) F("ERROR: No NTP time available! Time update could not be executed!") ENDMSG
   }
   return 0; // return 0 if unable to get the time
 }

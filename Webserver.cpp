@@ -47,7 +47,8 @@ void execWebserver(){
     static int requestCounter = 0;
     ++requestCounter;
     DEBUG{ Serial << requestCounter << F(". ethernet request detected.") << endl; }
- 
+    BEGINMSG( 3 ) F( "Web sever request detected." ) ENDMSG
+
     char clientline[BUFSIZ];
     int index = 0;
   
@@ -74,7 +75,8 @@ void execWebserver(){
         clientline[ index ] = 0;
 
         Serial << clientline << endl;
-        
+        BEGINMSG( 3 ) F( "WS received: " ) << clientline ENDMSG
+
         // Look for substring such as a request to get the root file
         if ( strstr( clientline, "GET /" ) != 0 ){
           // this time no space after the /, so a sub-file!

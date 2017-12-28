@@ -38,7 +38,7 @@ bool ftpOK( bool ignoreErrors ){
       Serial << (char)thisByte;
     }
     client.stop();
-    BEGINMSG F( "FTP disconnected" ) ENDMSG
+    BEGINMSG(4) F( "FTP disconnected" ) ENDMSG
     return false;
   }
   return true;
@@ -46,19 +46,19 @@ bool ftpOK( bool ignoreErrors ){
 
 bool ftpOpen(){
   if ( !client.connect( ftpServer, 21 ) || !ftpOK( false ) ){
-    BEGINMSG F( "FTP connection failed" ) ENDMSG
+    BEGINMSG(4) F( "FTP connection failed" ) ENDMSG
     client.stop();
     return false;
   }
   // login to FTP server
   client << F( "USER heizung" ) << endl;
   if( !ftpOK( false ) ){
-    BEGINMSG F("FTP user failed.") ENDMSG
+    BEGINMSG(4) F("FTP user failed.") ENDMSG
     return false;
   }
   client << F( "PASS hallo" ) << endl;
   if( !ftpOK( false ) ){
-    BEGINMSG F("FTP password failed.") ENDMSG
+    BEGINMSG(4) F("FTP password failed.") ENDMSG
     return false;
   }
   /*client << F( "SYST" ) << endl;
@@ -74,7 +74,7 @@ bool ftpOpen(){
   for ( int i = 0; i < 6; ++i ){
     s = strtok( 0, "(," );
     if( s == 0 ){
-      BEGINMSG F( "Bad PASV Answer" ) ENDMSG
+      BEGINMSG(4) F( "Bad PASV Answer" ) ENDMSG
       break;
     }
     array_pasv[ i ] = atoi( s );
@@ -84,7 +84,7 @@ bool ftpOpen(){
   //Serial << F( "Data port: " ) << port << endl;
 
   if ( !ftpClient.connect( ftpServer, port ) ){
-    BEGINMSG F( "Data connection failed" ) ENDMSG
+    BEGINMSG(4) F( "Data connection failed" ) ENDMSG
     client.stop();
     return false;
   }

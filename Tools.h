@@ -10,14 +10,28 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 // IMPORTANT:
-// The profiles base must be at least CONTROLLER_COUNT * EEPROM_CONTROLLER_SETTING_SIZE bytes higher than the temp base.
+// The profiles base must be at least CONTROLLER_COUNT * EEPROM_CONTROLLER_SETTING_SIZE + 6 bytes higher than the temp base.
 // Set the reset define whenever the profile base changes, execute the program and send
 // a 'setProfiles 0' command to initialize the EEPROM correctly.
 
 //#define EEPROM_FORCE_PROFILE_RESET
 #define EEPROM_TEMP_BASE 0
+
+#ifdef SUPPORT_FTP
+  #define EEPROM_FTPSERVERADDR 118
+#endif
+
+#ifdef SUPPORT_NTP
+  #define EEPROM_NTPSERVERADDR 122
+#endif
+
+#ifdef SUPPORT_UDP_messages
+  #define EEPROM_UDP_LOGGING_MASK_BASE 126
+#endif
+
 #define EEPROM_PROFILES_BASE 128
 #define EEPROM_CONTROLLER_SETTING_SIZE 4
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -94,7 +108,7 @@ extern void writeTime( Stream& out, const time_t& t );
 extern const char* readText( Stream& s );
 extern void read( Stream& s, char* buffer, unsigned short bufferSize );
 
-extern EEPROMStream g_eeprom;;
+extern EEPROMStream g_eeprom;
 
 // BUFFER_LENGTH must be at least 48 bytes for NTPClient
 #undef BUFFER_LENGTH

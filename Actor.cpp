@@ -349,7 +349,7 @@ void Actor::applyActorState( bool on ){
 }
   
 void Actor::sendStatus() const{
-  BEGINMSG "A " << getName() << ' ' << ( _state ? 1 : 0 ) ENDMSG
+  BEGINMSG(1) "A " << getName() << ' ' << (_state ? 1 : 0) ENDMSG
 }
 
 Actor* Actor::findActor( const char* name ){

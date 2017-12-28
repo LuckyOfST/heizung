@@ -11,6 +11,10 @@ unsigned char g_buffer[ BUFFER_LENGTH + 1 ];
 
 time_t g_startTime = 0;
 
+#ifdef SUPPORT_UDP_messages
+int g_debugMask = 0;
+#endif
+
 char* strlower( char* s ){
   for( char* p = s; *p; ++p ){
     *p = tolower( *p );
@@ -47,8 +51,9 @@ const char* readText( Stream& s ){
 }
 
 void read( Stream& s, char* buffer, unsigned short bufferSize ){
+  --bufferSize; // reduce buffer size by one for terminating 0.
   unsigned short i = 0;
-  while ( s.available() && i < bufferSize - 1 ){
+  while ( s.available() && i < bufferSize ){
     char c = s.read();
     if ( c == 10 || c == 13 || c == 32 ){
       if ( i == 0 ){
@@ -62,7 +67,7 @@ void read( Stream& s, char* buffer, unsigned short bufferSize ){
   buffer[ i ] = 0;
   while ( s.available() ){
     char c = s.peek();
-    if ( c != 10 || c != 13 || c != 32 ){
+    if ( c != 10 && c != 13 && c != 32 ){
       break;
     }
   }
