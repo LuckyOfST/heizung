@@ -16,6 +16,7 @@
 #define SUPPORT_UDP_messages
 #define SUPPORT_Webserver
 //#define SUPPORT_eBus
+#define SUPPORT_MQTT
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -24,6 +25,11 @@
   #undef SUPPORT_NTP
   #undef SUPPORT_UDP_messages
   #undef SUPPORT_Webserver
+  #undef SUPPORT_MQTT
+#else
+  #ifdef SUPPORT_NTP
+    #define SUPPORT_UDP_messages
+  #endif
 #endif // SUPPORT_Network
 
 #ifndef SUPPORT_FTP

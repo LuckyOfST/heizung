@@ -27,7 +27,10 @@ static IPAddress subnet( 255, 255, 255, 0 );
   // IPAddress timeServer(132, 163, 4, 103); // time-c.timefreq.bldrdoc.gov NTP server
 #endif // SUPPORT_NTP
 
-EthernetUDP Udp;
+#ifdef SUPPORT_UDP_messages
+  EthernetUDP Udp;
+#endif
+
 EthernetClient client;
 
 void setupNetwork(){

@@ -2,6 +2,7 @@
 #include <Time.h>
 
 #include "Actor.h"
+#include "MQTTClient.h"
 #include "SwitchController.h"
 #include "TemperatureProfiles.h"
 #include "Tools.h"
@@ -63,6 +64,9 @@ void SwitchController::heat( float level ){
     _heat = level;
     DEBUG2{ Serial << lz( day() ) << '.' << lz( month() ) << '.' << year() << ',' << lz( hour() ) << ':' << lz( minute() ) << ':' << lz( second() ) << F( " : " ) << getName() << ((level > 0.f) ? F( ": start" ) : F( ": stop" )) << F( " heating. (level " ) << _FLOAT( level, 2 ) << F( ")" ) << endl; }
     sendStatus();
+#ifdef SUPPORT_MQTT
+    MQTT::publishSwitch( getName(), level > 0.f );
+#endif
     if ( _actor != -1 ){
       g_actors[ _actor ]->setLevel( level );
     }

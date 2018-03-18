@@ -15,6 +15,7 @@
 #include "Controller.h"
 #include "Defines.h"
 #include "Job.h"
+#include "MQTTClient.h" 
 #include "Network.h"
 #include "NTPClient.h"
 #include "Sensors.h"
@@ -37,9 +38,13 @@
 
 void (*delayedCmd)() =0;
 
+bool g_setupInProgress = false;
+
 void setup(){
   // disable any watchdog as soon as possible...
   wdt_disable();
+
+  g_setupInProgress = true;
 
 #ifdef SUPPORT_UDP_messages
   g_eeprom.setCurrentBaseAddr( EEPROM_UDP_LOGGING_MASK_BASE );
@@ -54,6 +59,9 @@ void setup(){
 #ifdef SUPPORT_Network
   setupNetwork();
 #endif
+#ifdef SUPPORT_MQTT
+  MQTT::setup();
+#endif
   setupSensors();
   setupActors();
   setupController();
@@ -65,6 +73,7 @@ void setup(){
 #endif // SUPPORT_TemperatureUploader
   Serial << F( "--- SETUP FINISHED ---" ) << endl;
   cmdHelp( Serial, Serial );
+  g_setupInProgress = false;
 }
 
 void interpret( Stream& in, Stream& out ){
@@ -119,6 +128,10 @@ void loop(){
   DEBUG{ Serial << F( "execWebserver START" ) << endl; }
   execWebserver();
   DEBUG{ Serial << F( "execWebserver END" ) << endl; }
+#endif
+
+#ifdef SUPPORT_MQTT
+  MQTT::loop();
 #endif
 
   stopWatchdog();

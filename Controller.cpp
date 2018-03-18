@@ -2,6 +2,7 @@
 #include <Time.h>
 
 #include "Controller.h"
+#include "MQTTClient.h"
 #include "SingleSourceTwoLevelController.h"
 #include "SwitchController.h"
 #include "TemperatureProfiles.h"
@@ -119,6 +120,13 @@ const char* Controller::getName() const{
   
 void Controller::setup( int i, int amount ){
   Job::setup( i, amount );
+#ifdef SUPPORT_MQTT
+  if ( isSwitch() ){
+    MQTT::publishSwitch( getName(), false );
+  } else {
+    MQTT::publishTempSetup( getName(), getTargetT(), getMinimumLevel(), getProfileID() );
+  }
+#endif
   _delayMillis = (unsigned long)( (float)CONTROLLER_UPDATE_INTERVAL / amount * i );
 }
 

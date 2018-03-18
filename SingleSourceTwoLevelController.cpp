@@ -2,6 +2,7 @@
 #include <Time.h>
 
 #include "Actor.h"
+#include "MQTTClient.h"
 #include "Sensors.h"
 #include "SingleSourceTwoLevelController.h"
 #include "Tools.h"
@@ -44,7 +45,11 @@ unsigned long SingleSourceTwoLevelController::doJob(){
     Serial << getName() << F(": error in temperature update!") << endl;
     return CONTROLLER_UPDATE_INTERVAL;
   }
-
+#ifdef SUPPORT_MQTT
+  if ( _currentT != sensor._temp ){
+    MQTT::publishTemp( getName(), sensor._temp );
+  }
+#endif
   _currentT = sensor._temp;
 #else
   float t = 21.f;

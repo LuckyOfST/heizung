@@ -16,7 +16,10 @@
   extern IPAddress timeServer;
 #endif // SUPPORT_NTP
 
-extern EthernetUDP Udp;
+#ifdef SUPPORT_UDP_messages
+  extern EthernetUDP Udp;
+#endif
+
 extern EthernetClient client;
 
 extern void setupNetwork();
