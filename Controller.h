@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 // define the number of temperature controllers (usually the number of rooms)
-#define CONTROLLER_COUNT 26
+#define CONTROLLER_COUNT 25
 
 // defines the time interval the controller updates its logic in milliseconds
 #define CONTROLLER_UPDATE_INTERVAL 5000ul
@@ -89,6 +89,8 @@ protected:
 
   unsigned long specialFunctions( float t );
   
+  void sendSettings();
+
   uint8_t _cid;
   float _forcedLevel;
 };

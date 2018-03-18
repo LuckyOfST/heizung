@@ -41,7 +41,7 @@ Controller* g_controller[ CONTROLLER_COUNT + 1 ] = {
   new SingleSourceTwoLevelController( 22, 0, 8 ),
   new SingleSourceTwoLevelController( 23, 3, 6 ),
   new SwitchController( 24, 24 ),
-  new SingleSourceTwoLevelController( 25, -1, -1 ),
+  //new SwitchController( 25, -1 ),
   0 // define 0 as last entry!
 };
 
@@ -70,7 +70,7 @@ const char g_cnC21[] PROGMEM = "UG_Keller";
 const char g_cnC22[] PROGMEM = "UG_Waschen";
 const char g_cnC23[] PROGMEM = "UG_Diele";
 const char g_cnC24[] PROGMEM = "UG_Technik_Lueftung";
-const char g_cnC25[] PROGMEM = "UG_Waschen_Lueftung";
+//const char g_cnC25[] PROGMEM = "UG_Waschen_Lueftung";
 
 PGM_P const g_controllerNames[ CONTROLLER_COUNT ] PROGMEM = {
   g_cnC0,
@@ -98,7 +98,7 @@ PGM_P const g_controllerNames[ CONTROLLER_COUNT ] PROGMEM = {
   g_cnC22,
   g_cnC23,
   g_cnC24,
-  g_cnC25
+  //g_cnC25
 };
 
 Controller::Controller( uint8_t id )
@@ -120,6 +120,11 @@ const char* Controller::getName() const{
   
 void Controller::setup( int i, int amount ){
   Job::setup( i, amount );
+  sendSettings();
+  _delayMillis = (unsigned long)( (float)CONTROLLER_UPDATE_INTERVAL / amount * i );
+}
+
+void Controller::sendSettings(){
 #ifdef SUPPORT_MQTT
   if ( isSwitch() ){
     MQTT::publishSwitch( getName(), false );
@@ -127,7 +132,6 @@ void Controller::setup( int i, int amount ){
     MQTT::publishTempSetup( getName(), getTargetT(), getMinimumLevel(), getProfileID() );
   }
 #endif
-  _delayMillis = (unsigned long)( (float)CONTROLLER_UPDATE_INTERVAL / amount * i );
 }
 
 uint8_t Controller::getProfileID() const{
@@ -135,7 +139,11 @@ uint8_t Controller::getProfileID() const{
 }
   
 void Controller::setProfileID( uint8_t pid ){
+  if ( pid == getProfileID() ){
+    return;
+  }
   EEPROM.write( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE, pid );
+  sendSettings();
 }
 
 void Controller::setTargetT( float t ){
@@ -147,10 +155,14 @@ void Controller::setTargetT( float t ){
   } else if ( t > 25 ){
     t = 25.f; // maximum temperature (protect wooden floors)
   }
+  if ( t == getTargetT() ){
+    return;
+  }
   int targetT = t * 10;
   DEBUG{ Serial << F("setTargetT to (int) ") << targetT << endl; }
   EEPROM.write( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE + 1, targetT >> 8 );
   EEPROM.write( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE + 2, targetT & 0xff );
+  sendSettings();
 }
   
 float Controller::getTargetT() const{
@@ -159,7 +171,11 @@ float Controller::getTargetT() const{
 }
 
 void Controller::setMinimumLevel( float minLevel ){
+  if ( minLevel == getMinimumLevel() ){
+    return;
+  }
   EEPROM.write( EEPROM_TEMP_BASE + _cid * EEPROM_CONTROLLER_SETTING_SIZE + 3, (uint8_t)( minLevel * 255 ) );
+  sendSettings();
 }
 
 float Controller::getMinimumLevel() const{

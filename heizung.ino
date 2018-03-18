@@ -38,13 +38,9 @@
 
 void (*delayedCmd)() =0;
 
-bool g_setupInProgress = false;
-
 void setup(){
   // disable any watchdog as soon as possible...
   wdt_disable();
-
-  g_setupInProgress = true;
 
 #ifdef SUPPORT_UDP_messages
   g_eeprom.setCurrentBaseAddr( EEPROM_UDP_LOGGING_MASK_BASE );
@@ -73,7 +69,6 @@ void setup(){
 #endif // SUPPORT_TemperatureUploader
   Serial << F( "--- SETUP FINISHED ---" ) << endl;
   cmdHelp( Serial, Serial );
-  g_setupInProgress = false;
 }
 
 void interpret( Stream& in, Stream& out ){

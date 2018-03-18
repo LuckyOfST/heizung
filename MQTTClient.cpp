@@ -8,7 +8,6 @@
 #include "Tools.h"
 
 extern void interpret( Stream& stream, Stream& out );
-extern bool g_setupInProgress;
 
 namespace MQTT{
 
@@ -33,21 +32,23 @@ namespace MQTT{
   }
 
   void onMessageReceived( String& topic, String& msg ){
-    if ( g_setupInProgress ){
+    if ( !msg.length() ){
       return;
     }
+    mqttClient.publish( "/heizung/cmd", topic + ": " + msg );
     String cmd;
     String name;
-    if ( is( "/heizung/setup/temp/", topic, name ) ){
+    if ( is( "/heizung/set/temp/", topic, name ) ){
       cmd = "set " + name + ' ' + msg;
-    } else if ( is ( "/heizung/setup/switch/", topic, name ) ){
+    } else if ( is( "/heizung/set/switch/", topic, name ) ){
       cmd = "forceController " + name + ' ' + ( msg == "0" ? "-1" : "1" );
-    } else if ( is( "/heizung/setup/min-level/", topic, name ) ){
+    } else if ( is( "/heizung/set/min-level/", topic, name ) ){
       cmd = "setMinLevel " + name + ' ' + msg;
-    } else if ( is( "/heizung/setup/temp-profile/", topic, name ) ){
+    } else if ( is( "/heizung/set/temp-profile/", topic, name ) ){
       cmd = "setProfile " + name + ' ' + msg;
     }
     if ( cmd.length() > 0 && name.length() > 0 ){
+      mqttClient.publish( topic.c_str(), "", true, 0 ); // force 'set' messages to be not retained!
       StringStream in( cmd );
       StringStream out;
       interpret( in, out );
@@ -59,7 +60,7 @@ namespace MQTT{
     mqttClient.begin( mqttBrokerIP, mqttBrokerPort, mqttNetClient );
     mqttClient.onMessage( &onMessageReceived );
     //mqttClient.setWill( "/heizung/state/running", "0", true, 1 );
-    //mqttClient.setOptions( 10, true, 10000 );
+    mqttClient.setOptions( 1000, true, 1000000 );
     loop();
     //mqttClient.publish( "/heizung/state/running", "1", true, 1 );
   }
@@ -67,7 +68,7 @@ namespace MQTT{
   void loop(){
     if ( !mqttClient.connected() ){
       if ( mqttClient.connect( mqttClientId ) ){
-        mqttClient.subscribe( "/heizung/setup/#" );
+        mqttClient.subscribe( "/heizung/set/#" );
       }
     }
     mqttClient.loop();
@@ -80,21 +81,13 @@ namespace MQTT{
   }
 
   void publishTemp( const String& name, float t ){
-    StringStream payload;
-    payload << _FLOAT( t, 1 );
-    publish( "state/temp", name, payload.str() );
+    publish( "state/temp", name, String( t, 1 ) );
   }
 
   void publishTempSetup( const String& name, float t, float minLevel, int profile ){
-    StringStream payload;
-    payload << _FLOAT( t, 1 );
-    publish( "setup/temp", name, payload.str() );
-    payload.clear();
-    payload << minLevel;
-    publish( "setup/min-level", name, payload.str() );
-    payload.clear();
-    payload << profile;
-    publish( "setup/temp-profile", name, payload.str() );
+    publish( "settings/temp", name, String( t, 1 ) );
+    publish( "settings/min-level", name, String( minLevel ) );
+    publish( "settings/temp-profile", name, String( profile ) );
   }
 
   void publishSwitch( const String& name, bool on ){
